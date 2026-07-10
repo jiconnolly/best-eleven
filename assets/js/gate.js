@@ -53,7 +53,7 @@
   // world landmass — dim steel
   if(typeof WORLD_POINTS !== 'undefined'){
     world.add(new THREE.Points(cloud(WORLD_POINTS, R), new THREE.PointsMaterial({
-      size: 0.0085, map: steelTex, color: 0x93A6B8, transparent: true, opacity: 0.5,
+      size: 0.013, map: steelTex, color: 0xBBCCDC, transparent: true, opacity: 0.85,
       depthWrite: false, sizeAttenuation: true
     })));
   }
