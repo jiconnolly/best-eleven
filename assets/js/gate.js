@@ -386,7 +386,7 @@
     tEnter = clock.getElapsedTime();
     gate.classList.add('entering');
   }
-  var btn = gate.querySelector('.gate-enter');
-  if(btn) btn.addEventListener('click', enter);
+  var btns = gate.querySelectorAll('.gate-enter');
+  btns.forEach(function(btn){ btn.addEventListener('click', enter); });
   gate.addEventListener('keydown', function(e){ if(e.key === 'Enter') enter(); });
 })();

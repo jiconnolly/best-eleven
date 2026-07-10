@@ -436,13 +436,28 @@ body.gated{overflow:hidden;}
 .gate-inner{
   position:relative;z-index:2;text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:1.7rem;
-  padding:1.5rem;
+  padding:1.5rem;pointer-events:none;
 }
+.gate-logo,.gate-inner .btn,.gate-lang{pointer-events:auto;}
 .gate-radar{
-  position:relative;width:min(96vh,96vw);aspect-ratio:1/1;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(96vh,96vw);aspect-ratio:1/1;
   display:flex;align-items:center;justify-content:center;
-  border-radius:50%;
+  border-radius:50%;pointer-events:none;z-index:0;
 }
+.gate-logo{
+  background:none;border:none;padding:0;margin:0;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;position:relative;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+}
+.gate-logo img{
+  width:min(200px,42vw);height:auto;
+  filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6));
+  transition:transform .4s var(--ease),filter .4s;
+}
+.gate-logo:hover img,.gate-logo:focus-visible img{transform:scale(1.05);filter:drop-shadow(0 12px 34px rgba(201,169,97,0.45));}
+.gate-logo:focus-visible{outline:none;}
+.gate-copy{position:relative;z-index:2;}
 .gate-radar .ring{
   position:absolute;border-radius:50%;border:1px solid rgba(201,169,97,0.10);
 }
@@ -462,7 +477,6 @@ body.gated{overflow:hidden;}
 }
 html.reduced .gate-radar .sweep{animation:none;opacity:0.35;}
 @keyframes gsweep{to{transform:rotate(360deg);}}
-.gate-radar img{width:21%;height:auto;position:relative;z-index:2;filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6));}
 .gate-title{
   font-size:0.72rem;font-weight:700;letter-spacing:0.44em;text-transform:uppercase;
   color:var(--beige);
