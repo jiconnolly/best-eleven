@@ -443,19 +443,24 @@ body.gated{overflow:hidden;}
   border-radius:50%;
 }
 .gate-radar .ring{
-  position:absolute;border-radius:50%;border:1px solid rgba(201,169,97,0.22);
+  position:absolute;border-radius:50%;border:1px solid rgba(201,169,97,0.10);
 }
 .gate-radar .r1{inset:0;}
-.gate-radar .r2{inset:14.5%;}
-.gate-radar .r3{inset:29%;border-color:rgba(201,169,97,0.30);}
-.gate-radar .r4{inset:41%;border-color:rgba(201,169,97,0.4);}
 .gate-radar .sweep{
   position:absolute;inset:0;border-radius:50%;overflow:hidden;
-  background:conic-gradient(from 0deg,rgba(201,169,97,0.30) 0deg,rgba(201,169,97,0) 282deg,rgba(201,169,97,0.10) 314deg,rgba(201,169,97,0.30) 360deg);
-  animation:gsweep 4.6s linear infinite;
+  /* leading hairline at 360deg, wake trailing BEHIND the clockwise rotation */
+  background:conic-gradient(from 0deg,
+    rgba(201,169,97,0) 0deg,
+    rgba(201,169,97,0) 226deg,
+    rgba(201,169,97,0.015) 250deg,
+    rgba(201,169,97,0.05) 305deg,
+    rgba(201,169,97,0.10) 352deg,
+    rgba(228,203,142,0.22) 359deg,
+    rgba(228,203,142,0.26) 360deg);
+  animation:gsweep 7s linear infinite;
 }
-html.reduced .gate-radar .sweep{animation:none;opacity:0.4;}
-@keyframes gsweep{to{transform:rotate(-360deg);}}
+html.reduced .gate-radar .sweep{animation:none;opacity:0.35;}
+@keyframes gsweep{to{transform:rotate(360deg);}}
 .gate-radar img{width:21%;height:auto;position:relative;z-index:2;filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6));}
 .gate-title{
   font-size:0.72rem;font-weight:700;letter-spacing:0.44em;text-transform:uppercase;

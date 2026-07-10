@@ -133,11 +133,10 @@
     function labelTex(text){
       var c = document.createElement('canvas'); c.width = 512; c.height = 96;
       var x = c.getContext('2d');
-      x.font = '600 40px Manrope, Arial, sans-serif';
-      if('letterSpacing' in x) x.letterSpacing = '10px';
+      x.font = '400 38px "B612 Mono", "Courier New", monospace';
+      if('letterSpacing' in x) x.letterSpacing = '6px';
       x.textAlign = 'center'; x.textBaseline = 'middle';
-      x.shadowColor = 'rgba(0,0,0,0.9)'; x.shadowBlur = 10;
-      x.fillStyle = 'rgba(240,233,215,0.95)';
+      x.fillStyle = 'rgba(196,192,178,0.85)';
       x.fillText(text, 256, 50);
       var t = new THREE.CanvasTexture(c);
       t.minFilter = THREE.LinearFilter;
@@ -148,30 +147,38 @@
       var pos = dir.clone().multiplyScalar(R + 0.015);
 
       var core = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: goldTex, color: 0xF6E3B0, transparent: true, opacity: 1,
-        depthWrite: false, blending: THREE.AdditiveBlending
+        map: goldTex, color: 0xD8BE84, transparent: true, opacity: 0.8,
+        depthWrite: false
       }));
-      core.position.copy(pos); core.scale.setScalar(0.06);
+      core.position.copy(pos); core.scale.setScalar(0.04);
       world.add(core);
 
       var ring = new THREE.Mesh(
         new THREE.RingGeometry(0.03, 0.035, 40),
-        new THREE.MeshBasicMaterial({color:0xC9A961, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false})
+        new THREE.MeshBasicMaterial({color:0xC9A961, transparent:true, opacity:0.4, side:THREE.DoubleSide, depthWrite:false})
       );
       ring.position.copy(pos);
       ring.lookAt(dir.clone().multiplyScalar(2));
       world.add(ring);
 
       var label = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: labelTex(ct.name), transparent: true, opacity: 0.95, depthWrite: false
+        map: labelTex(ct.name), transparent: true, opacity: 0.6, depthWrite: false
       }));
       label.position.copy(dir.clone().multiplyScalar(R + 0.02));
       label.center.set(0.5, ct.below ? 1.75 : -0.75); // float the text above (or below) the node
-      label.scale.set(0.42, 0.079, 1);
+      label.scale.set(0.21, 0.0394, 1);
       world.add(label);
 
-      markers.push({dir: dir, core: core, ring: ring, label: label, phase: idx * 0.85});
+      markers.push({dir: dir, core: core, ring: ring, label: label, name: ct.name, phase: idx * 0.85});
     });
+    if(document.fonts && document.fonts.load){
+      document.fonts.load('400 38px "B612 Mono"').then(function(){
+        markers.forEach(function(m){
+          m.label.material.map = labelTex(m.name);
+          m.label.material.needsUpdate = true;
+        });
+      });
+    }
   })();
 
   // start with South America facing the camera
@@ -263,11 +270,11 @@
       var m = markers[mi];
       var wz = m.dir.clone().applyQuaternion(world.quaternion).z;
       var vis = Math.max(0, Math.min(1, (wz - 0.02) / 0.4)) * (1 - pNow);
-      var pp = (t * 0.9 + m.phase) % 2;
-      m.ring.scale.setScalar(1 + pp * 1.7);
-      m.ring.material.opacity = Math.max(0, 0.85 * (1 - pp / 2)) * vis;
-      m.core.material.opacity = vis;
-      m.label.material.opacity = 0.95 * vis;
+      var pp = (t * 0.5 + m.phase) % 2;
+      m.ring.scale.setScalar(1 + pp * 0.8);
+      m.ring.material.opacity = Math.max(0, 0.4 * (1 - pp / 2)) * vis;
+      m.core.material.opacity = 0.8 * vis;
+      m.label.material.opacity = 0.6 * vis;
     }
 
     renderer.render(scene, camera);
