@@ -121,6 +121,59 @@
     })));
   })();
 
+  // city markers — Buenos Aires, Asunción, Montevideo, Miami
+  var markers = [];
+  (function(){
+    var cities = [
+      {name:'BUENOS AIRES', lon:-58.4, lat:-34.6, below:true},
+      {name:'ASUNCIÓN',     lon:-57.6, lat:-25.3},
+      {name:'MONTEVIDEO',   lon:-56.2, lat:-34.9},
+      {name:'MIAMI',        lon:-80.2, lat: 25.8}
+    ];
+    function labelTex(text){
+      var c = document.createElement('canvas'); c.width = 512; c.height = 96;
+      var x = c.getContext('2d');
+      x.font = '600 40px Manrope, Arial, sans-serif';
+      if('letterSpacing' in x) x.letterSpacing = '10px';
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.shadowColor = 'rgba(0,0,0,0.9)'; x.shadowBlur = 10;
+      x.fillStyle = 'rgba(240,233,215,0.95)';
+      x.fillText(text, 256, 50);
+      var t = new THREE.CanvasTexture(c);
+      t.minFilter = THREE.LinearFilter;
+      return t;
+    }
+    cities.forEach(function(ct, idx){
+      var dir = ll2v(ct.lon, ct.lat, 1).normalize();
+      var pos = dir.clone().multiplyScalar(R + 0.015);
+
+      var core = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: goldTex, color: 0xF6E3B0, transparent: true, opacity: 1,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      }));
+      core.position.copy(pos); core.scale.setScalar(0.06);
+      world.add(core);
+
+      var ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.03, 0.035, 40),
+        new THREE.MeshBasicMaterial({color:0xC9A961, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false})
+      );
+      ring.position.copy(pos);
+      ring.lookAt(dir.clone().multiplyScalar(2));
+      world.add(ring);
+
+      var label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: labelTex(ct.name), transparent: true, opacity: 0.95, depthWrite: false
+      }));
+      label.position.copy(dir.clone().multiplyScalar(R + 0.02));
+      label.center.set(0.5, ct.below ? 1.75 : -0.75); // float the text above (or below) the node
+      label.scale.set(0.42, 0.079, 1);
+      world.add(label);
+
+      markers.push({dir: dir, core: core, ring: ring, label: label, phase: idx * 0.85});
+    });
+  })();
+
   // start with South America facing the camera
   var target = ll2v(-60, -18, 1).normalize();
   var baseQ = new THREE.Quaternion().setFromUnitVectors(target, new THREE.Vector3(0, 0, 1));
@@ -203,6 +256,20 @@
       var q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.02 * Math.sin(spin * 2), spin, 0));
       world.quaternion.copy(baseQ).premultiply(q);
     }
+
+    // markers: pulse, hide on the far side, fade out during the explosion
+    var pNow = entering ? Math.min((t - tEnter) / EXPLODE, 1) : 0;
+    for(var mi = 0; mi < markers.length; mi++){
+      var m = markers[mi];
+      var wz = m.dir.clone().applyQuaternion(world.quaternion).z;
+      var vis = Math.max(0, Math.min(1, (wz - 0.02) / 0.4)) * (1 - pNow);
+      var pp = (t * 0.9 + m.phase) % 2;
+      m.ring.scale.setScalar(1 + pp * 1.7);
+      m.ring.material.opacity = Math.max(0, 0.85 * (1 - pp / 2)) * vis;
+      m.core.material.opacity = vis;
+      m.label.material.opacity = 0.95 * vis;
+    }
+
     renderer.render(scene, camera);
   }
   frame();
