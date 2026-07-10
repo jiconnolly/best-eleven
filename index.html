@@ -11,6 +11,27 @@
 </head>
 <body>
 
+<!-- ============ ENTRY GATE ============ -->
+<div id="gate" role="dialog" aria-label="Best Eleven Sports Group" tabindex="-1">
+  <div id="gateGlobe" aria-hidden="true"></div>
+  <div class="gate-lang lang-toggle" role="group" aria-label="Language">
+    <button data-lang="en" type="button">EN</button>
+    <button data-lang="es" type="button">ES</button>
+  </div>
+  <div class="gate-inner">
+    <div class="gate-radar" aria-hidden="true">
+      <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+      <span class="sweep"></span>
+      <img src="assets/img/b11-mark.png" alt="">
+    </div>
+    <div>
+      <div class="gate-title">Best Eleven Sports Group</div>
+      <div class="gate-sub" data-es="La fuente del fútbol sudamericano.">The source of South American football.</div>
+    </div>
+    <button class="btn btn-gold gate-enter" type="button"><span data-es="Entrar">Enter</span> <span class="arr">→</span></button>
+  </div>
+</div>
+
 <nav class="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo" aria-label="Best Eleven Sports Group"><img src="assets/img/logo-besg.png" alt="Best Eleven"></a>
@@ -238,6 +259,8 @@
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script src="assets/js/sa-points.js"></script>
+<script src="assets/js/world-points.js"></script>
+<script src="assets/js/gate.js"></script>
 <script src="assets/js/globe.js"></script>
 <script src="assets/js/main.js"></script>
 </body>

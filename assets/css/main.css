@@ -421,3 +421,50 @@ html.no-js .hero-ctas,html.reduced .hero-ctas{opacity:1;}
 
 /* focus visibility */
 a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+
+/* ---------- Entry gate ---------- */
+#gate{
+  position:fixed;inset:0;z-index:150;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 100% 90% at 50% 45%,#101B26 0%,#0A0F15 62%,#070B10 100%);
+  transition:opacity 1s ease,visibility 1s;
+}
+#gate.off{opacity:0;visibility:hidden;pointer-events:none;}
+#gateGlobe{position:absolute;inset:0;}
+body.gated{overflow:hidden;}
+.gate-inner{
+  position:relative;z-index:2;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:1.7rem;
+  padding:1.5rem;
+}
+.gate-radar{
+  position:relative;width:min(330px,64vw);aspect-ratio:1/1;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+}
+.gate-radar .ring{
+  position:absolute;border-radius:50%;border:1px solid rgba(201,169,97,0.22);
+}
+.gate-radar .r1{inset:0;}
+.gate-radar .r2{inset:14.5%;}
+.gate-radar .r3{inset:29%;border-color:rgba(201,169,97,0.34);}
+.gate-radar .sweep{
+  position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  background:conic-gradient(from 0deg,rgba(201,169,97,0.30) 0deg,rgba(201,169,97,0.10) 46deg,rgba(201,169,97,0) 78deg);
+  animation:gsweep 4.6s linear infinite;
+}
+html.reduced .gate-radar .sweep{animation:none;opacity:0.4;}
+@keyframes gsweep{to{transform:rotate(360deg);}}
+.gate-radar img{width:52%;height:auto;position:relative;z-index:2;filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6));}
+.gate-title{
+  font-size:0.72rem;font-weight:700;letter-spacing:0.44em;text-transform:uppercase;
+  color:var(--beige);
+}
+.gate-sub{
+  font-family:'Fraunces',serif;font-style:italic;
+  font-size:clamp(1.05rem,2.2vw,1.35rem);color:var(--gold);
+}
+.gate-lang{position:absolute;top:1.4rem;right:clamp(1.2rem,4vw,3rem);z-index:3;}
+@media(max-width:560px){
+  .gate-title{letter-spacing:0.3em;}
+}

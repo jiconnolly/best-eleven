@@ -92,15 +92,22 @@
       });
     });
 
-    // hero intro sequence (home only)
+    // hero intro sequence (home only) — waits for gate entry if the gate is present
     if(document.querySelector('.hero-copy')){
-      var tl = gsap.timeline({defaults:{ease:'power3.out'}});
-      tl.to('.hero-copy .eyebrow', {opacity:1, duration:0.8}, 0.15)
-        .to('.hero-copy h1', {opacity:1, y:0, duration:1.1}, 0.3)
-        .to('.hero-copy .lead', {opacity:1, duration:1}, 0.75)
-        .to('.hero-ctas', {opacity:1, duration:0.9}, 1.0)
-        .to('.hstat', {opacity:1, duration:0.8, stagger:0.12}, 1.15);
       gsap.set('.hero-copy h1', {y:26});
+      var playIntro = function(){
+        var tl = gsap.timeline({defaults:{ease:'power3.out'}});
+        tl.to('.hero-copy .eyebrow', {opacity:1, duration:0.8}, 0.15)
+          .to('.hero-copy h1', {opacity:1, y:0, duration:1.1}, 0.3)
+          .to('.hero-copy .lead', {opacity:1, duration:1}, 0.75)
+          .to('.hero-ctas', {opacity:1, duration:0.9}, 1.0)
+          .to('.hstat', {opacity:1, duration:0.8, stagger:0.12}, 1.15);
+      };
+      if(document.getElementById('gate')){
+        document.addEventListener('besg:enter', playIntro, {once:true});
+      } else {
+        playIntro();
+      }
     }
 
     // counters
