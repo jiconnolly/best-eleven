@@ -469,3 +469,14 @@ html.reduced .gate-radar .sweep{animation:none;opacity:0.4;}
 @media(max-width:560px){
   .gate-title{letter-spacing:0.3em;}
 }
+
+/* gate enter effect */
+#gate.entering .gate-inner,
+#gate.entering .gate-lang{opacity:0;transition:opacity .35s ease;}
+#gateFlash{
+  position:fixed;inset:0;z-index:210;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 46%,#FFFDF2 0%,#F4E2B0 38%,#D9BC78 68%,#C9A961 100%);
+  transition:opacity .38s ease-in;
+}
+#gateFlash.on{opacity:1;}
+#gateFlash:not(.on){transition:opacity 1s ease-out;}
