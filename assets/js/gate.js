@@ -126,7 +126,7 @@
     if(!running) return;
     requestAnimationFrame(frame);
     if(!reduced){
-      spin += 0.0016;
+      spin -= 0.0016;
       var q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.02 * Math.sin(spin * 2), spin, 0));
       world.quaternion.copy(baseQ).premultiply(q);
     }
