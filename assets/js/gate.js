@@ -130,13 +130,13 @@
       {name:'MONTEVIDEO',   lon:-56.2, lat:-34.9},
       {name:'MIAMI',        lon:-80.2, lat: 25.8}
     ];
-    function labelTex(text){
+    function labelTex(text, color){
       var c = document.createElement('canvas'); c.width = 512; c.height = 96;
       var x = c.getContext('2d');
       x.font = '400 38px "B612 Mono", "Courier New", monospace';
       if('letterSpacing' in x) x.letterSpacing = '6px';
       x.textAlign = 'center'; x.textBaseline = 'middle';
-      x.fillStyle = 'rgba(196,192,178,0.85)';
+      x.fillStyle = color || 'rgba(196,192,178,0.85)';
       x.fillText(text, 256, 50);
       var t = new THREE.CanvasTexture(c);
       t.minFilter = THREE.LinearFilter;
@@ -169,16 +169,85 @@
       label.scale.set(0.21, 0.0394, 1);
       world.add(label);
 
-      markers.push({dir: dir, core: core, ring: ring, label: label, name: ct.name, phase: idx * 0.85});
+      markers.push({dir: dir, core: core, ring: ring, label: label, name: ct.name, labelColor: null, phase: idx * 0.85});
     });
+
+    // export destinations — steel colour to differentiate from our locations
+    var DEST_LABEL = 'rgba(150,172,194,0.9)';
+    var dests = [
+      {name:'CDMX',        lon:-99.1,  lat: 19.4},
+      {name:'RÍO DE JANEIRO', lon:-43.2, lat:-22.9, below:true},
+      {name:'SÃO PAULO',   lon:-46.6,  lat:-23.55},
+      {name:'LONDRES',     lon:-0.13,  lat: 51.5},
+      {name:'PARÍS',       lon: 2.35,  lat: 48.86, below:true},
+      {name:'MADRID',      lon:-3.7,   lat: 40.4,  below:true},
+      {name:'BARCELONA',   lon: 2.17,  lat: 41.39},
+      {name:'MÚNICH',      lon: 11.58, lat: 48.14},
+      {name:'MILÁN',       lon: 9.19,  lat: 45.46, below:true},
+      {name:'ESTAMBUL',    lon: 28.98, lat: 41.01},
+      {name:'TEL AVIV',    lon: 34.78, lat: 32.08, below:true},
+      {name:'DUBAI',       lon: 55.27, lat: 25.2}
+    ];
+    dests.forEach(function(ct){
+      var dir = ll2v(ct.lon, ct.lat, 1).normalize();
+      var pos = dir.clone().multiplyScalar(R + 0.012);
+      var core = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: steelTex, color: 0xA9C4DC, transparent: true, opacity: 0.7,
+        depthWrite: false
+      }));
+      core.position.copy(pos); core.scale.setScalar(0.028);
+      world.add(core);
+      var label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: labelTex(ct.name, DEST_LABEL), transparent: true, opacity: 0.5, depthWrite: false
+      }));
+      label.position.copy(dir.clone().multiplyScalar(R + 0.015));
+      label.center.set(0.5, ct.below ? 1.6 : -0.7);
+      label.scale.set(0.17, 0.0319, 1);
+      world.add(label);
+      markers.push({dir: dir, core: core, ring: null, label: label, name: ct.name, labelColor: DEST_LABEL, dest: true, phase: 0});
+    });
+
     if(document.fonts && document.fonts.load){
       document.fonts.load('400 38px "B612 Mono"').then(function(){
         markers.forEach(function(m){
-          m.label.material.map = labelTex(m.name);
+          m.label.material.map = labelTex(m.name, m.labelColor);
           m.label.material.needsUpdate = true;
         });
       });
     }
+  })();
+
+  // export arcs — from the BA–MVD–ASU cluster toward Brazil, Mexico, Europe, Middle East and Asia
+  var arcs = [];
+  (function(){
+    var BA = [-58.4,-34.6], MVD = [-56.2,-34.9], ASU = [-57.6,-25.3];
+    function mkArc(fromLL, toLL, lift, speed, phase){
+      var a = ll2v(fromLL[0], fromLL[1], R + 0.008);
+      var b = ll2v(toLL[0], toLL[1], R + 0.008);
+      var mid = a.clone().add(b).multiplyScalar(0.5).normalize().multiplyScalar(R + lift);
+      var curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+      var geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(100));
+      var mat = new THREE.LineDashedMaterial({
+        color: 0xC9A961, transparent: true, opacity: 0.20,
+        dashSize: 0.03, gapSize: 0.035, depthWrite: false
+      });
+      var line = new THREE.Line(geo, mat);
+      line.computeLineDistances();
+      world.add(line);
+      var comet = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: goldTex, color: 0xE4CB8E, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      }));
+      comet.scale.setScalar(0.026);
+      world.add(comet);
+      arcs.push({curve: curve, mat: mat, comet: comet, speed: speed, phase: phase, baseOpacity: 0.20});
+    }
+    mkArc(ASU, [-46.6,-23.55], 0.18, 0.14, 0.0);   // → São Paulo (Brazil)
+    mkArc(BA,  [-99.1, 19.4],  0.34, 0.10, 0.35);  // → CDMX (Mexico)
+    mkArc(MVD, [-3.7,  40.4],  0.52, 0.075, 0.6);  // → Madrid (Europe)
+    mkArc(BA,  [ 9.19, 45.46], 0.58, 0.07, 0.15);  // → Milan (Europe)
+    mkArc(ASU, [55.27, 25.2],  0.72, 0.06, 0.8);   // → Dubai (Middle East)
+    mkArc(MVD, [103.8, 30.0],  0.85, 0.055, 0.45); // → Asia
   })();
 
   // start with South America facing the camera
@@ -270,11 +339,25 @@
       var m = markers[mi];
       var wz = m.dir.clone().applyQuaternion(world.quaternion).z;
       var vis = Math.max(0, Math.min(1, (wz - 0.02) / 0.4)) * (1 - pNow);
-      var pp = (t * 0.5 + m.phase) % 2;
-      m.ring.scale.setScalar(1 + pp * 0.8);
-      m.ring.material.opacity = Math.max(0, 0.4 * (1 - pp / 2)) * vis;
-      m.core.material.opacity = 0.8 * vis;
-      m.label.material.opacity = 0.6 * vis;
+      if(m.ring){
+        var pp = (t * 0.5 + m.phase) % 2;
+        m.ring.scale.setScalar(1 + pp * 0.8);
+        m.ring.material.opacity = Math.max(0, 0.4 * (1 - pp / 2)) * vis;
+      }
+      m.core.material.opacity = (m.dest ? 0.65 : 0.8) * vis;
+      m.label.material.opacity = (m.dest ? 0.5 : 0.6) * vis;
+    }
+
+    // export arcs: faint dashed paths + travelling gold pulses (outbound direction)
+    for(var ai = 0; ai < arcs.length; ai++){
+      var A = arcs[ai];
+      A.mat.opacity = A.baseOpacity * (1 - pNow);
+      var u = (t * A.speed + A.phase) % 1;
+      var cp = A.curve.getPoint(u);
+      A.comet.position.copy(cp);
+      var cz = cp.clone().normalize().applyQuaternion(world.quaternion).z;
+      var czv = Math.max(0, Math.min(1, (cz + 0.15) / 0.5));
+      A.comet.material.opacity = Math.sin(Math.PI * u) * 0.85 * czv * (1 - pNow);
     }
 
     renderer.render(scene, camera);
