@@ -441,7 +441,7 @@ body.gated{overflow:hidden;}
 .gate-logo,.gate-inner .btn,.gate-lang{pointer-events:auto;}
 .gate-radar{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:min(96vh,96vw);aspect-ratio:1/1;
+  width:max(108vw,108vh);aspect-ratio:1/1;
   display:flex;align-items:center;justify-content:center;
   border-radius:50%;pointer-events:none;z-index:0;
 }
