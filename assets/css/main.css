@@ -526,9 +526,9 @@ html.reduced .gate-radar .sweep{animation:none;opacity:0.35;}
 
 /* ---- Real Estate hero icon ---- */
 .re-hero-head{display:flex;align-items:center;gap:clamp(1.5rem,4vw,3.5rem);flex-wrap:wrap;}
-.re-hero-icon{width:clamp(96px,11vw,140px);height:clamp(96px,11vw,140px);flex:none;opacity:0;
+.re-hero-icon{width:clamp(150px,17vw,220px);height:auto;flex:none;opacity:0;
   animation:reIconIn 0.9s var(--ease) 0.3s forwards;}
 .re-hero-icon .re-arrow-glow{}
 @keyframes reIconIn{from{opacity:0;transform:translateY(10px) scale(0.94);}to{opacity:1;transform:none;}}
 html.reduced .re-hero-icon{animation:none;opacity:1;}
-@media(max-width:640px){.re-hero-head{gap:1.2rem;}.re-hero-icon{width:80px;height:80px;}}
+@media(max-width:640px){.re-hero-head{gap:1.2rem;}.re-hero-icon{width:150px;height:auto;}}
