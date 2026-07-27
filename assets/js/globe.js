@@ -58,31 +58,38 @@
 
   // solid shell so the far side is hidden and the sphere reads as a planet
   var shell = new THREE.Mesh(
-    new THREE.SphereGeometry(R * 0.985, 64, 48),
+    new THREE.SphereGeometry(R * 0.992, 64, 48),
     new THREE.MeshBasicMaterial({ color: 0x0a141d })
   );
   world.add(shell);
 
-  // graticule as real lines, visible enough to give the planet structure
-  function gratLines(r, step, color, opacity){
-    var pts = [];
-    for(var lo = -180; lo < 180; lo += step)
-      for(var la = -86; la < 86; la += 4) pts.push(ll2v(lo, la, r), ll2v(lo, la + 4, r));
-    for(var la2 = -75; la2 <= 75; la2 += step)
-      for(var lo2 = -180; lo2 < 180; lo2 += 4) pts.push(ll2v(lo2, la2, r), ll2v(lo2 + 4, la2, r));
+  // truncated icosahedron: the panel pattern of a football (12 pentagons + 20 hexagons)
+  var BALL_V=[-0.2018,-0.73,-0.653,-0.4035,-0.8547,-0.3265,-0.3265,-0.4035,-0.8547,-0.653,-0.2018,-0.73,0,-0.2018,-0.9794,0,0.2018,-0.9794,0.2018,-0.73,-0.653,0.4035,-0.8547,-0.3265,0.3265,-0.4035,-0.8547,0.653,-0.2018,-0.73,-0.73,-0.653,-0.2018,-0.8547,-0.3265,-0.4035,-0.4035,-0.8547,0.3265,-0.2018,-0.73,0.653,-0.73,-0.653,0.2018,-0.8547,-0.3265,0.4035,-0.2018,-0.9794,0,0.2018,-0.9794,0,-0.8547,0.3265,-0.4035,-0.73,0.653,-0.2018,-0.9794,0,-0.2018,-0.9794,0,0.2018,-0.653,0.2018,-0.73,-0.3265,0.4035,-0.8547,-0.3265,-0.4035,0.8547,-0.653,-0.2018,0.73,0.2018,-0.73,0.653,0.4035,-0.8547,0.3265,0,-0.2018,0.9794,0,0.2018,0.9794,0.3265,-0.4035,0.8547,0.653,-0.2018,0.73,-0.73,0.653,0.2018,-0.8547,0.3265,0.4035,-0.4035,0.8547,-0.3265,-0.2018,0.73,-0.653,-0.4035,0.8547,0.3265,-0.2018,0.73,0.653,-0.2018,0.9794,0,0.2018,0.9794,0,-0.653,0.2018,0.73,-0.3265,0.4035,0.8547,0.3265,0.4035,-0.8547,0.653,0.2018,-0.73,0.2018,0.73,-0.653,0.4035,0.8547,-0.3265,0.73,-0.653,-0.2018,0.8547,-0.3265,-0.4035,0.73,-0.653,0.2018,0.8547,-0.3265,0.4035,0.8547,0.3265,-0.4035,0.73,0.653,-0.2018,0.9794,0,-0.2018,0.9794,0,0.2018,0.2018,0.73,0.653,0.4035,0.8547,0.3265,0.3265,0.4035,0.8547,0.653,0.2018,0.73,0.73,0.653,0.2018,0.8547,0.3265,0.4035];
+  var BALL_E=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,8,6,6,0,0,2,2,4,4,8,14,10,10,1,1,16,16,12,12,14,18,22,22,3,3,11,11,20,20,18,28,24,24,13,13,26,26,30,30,28,38,34,34,19,19,32,32,36,36,38,33,21,21,15,15,25,25,40,40,33,44,42,42,5,5,23,23,35,35,44,27,17,17,7,7,46,46,48,48,27,52,47,47,9,9,43,43,50,50,52,37,41,41,29,29,56,56,54,54,37,51,45,45,39,39,55,55,58,58,51,59,57,57,31,31,49,49,53,53,59];
+  function ballLines(r, color, opacity){
+    var pts=[], SEG=10, PASS=[0.9975, 1.0, 1.0025];   // WebGL caps lines at 1px, so
+    for(var q=0;q<PASS.length;q++){                    // trace each edge on 3 close radii
+      var rr=r*PASS[q];
+      for(var e=0;e<BALL_E.length;e+=2){
+        var a=BALL_E[e]*3, b=BALL_E[e+1]*3, prev=null;
+        for(var s=0;s<=SEG;s++){
+          var t=s/SEG;
+          var x=BALL_V[a]+(BALL_V[b]-BALL_V[a])*t;
+          var y=BALL_V[a+1]+(BALL_V[b+1]-BALL_V[a+1])*t;
+          var z=BALL_V[a+2]+(BALL_V[b+2]-BALL_V[a+2])*t;
+          var l=Math.sqrt(x*x+y*y+z*z);          // great-circle arc: hug the sphere
+          var p=new THREE.Vector3(x/l*rr, y/l*rr, z/l*rr);
+          if(prev) pts.push(prev, p);
+          prev=p;
+        }
+      }
+    }
     return new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(pts),
       new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
     );
   }
-  world.add(gratLines(R * 1.001, 15, 0x8ea5bc, 0.36));
-
-  var eqPts = [];
-  for(var eo = -180; eo < 180; eo += 3) eqPts.push(ll2v(eo, 0, R * 1.002), ll2v(eo + 3, 0, R * 1.002));
-  world.add(new THREE.LineSegments(
-    new THREE.BufferGeometry().setFromPoints(eqPts),
-    new THREE.LineBasicMaterial({ color: 0xC9A961, transparent: true, opacity: 0.44, depthWrite: false })
-  ));
+  world.add(ballLines(R * 1.0, 0x8ea5bc, 0.42));
 
   // atmosphere: a rim of light so the silhouette separates from the page
   (function(){
