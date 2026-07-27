@@ -61,7 +61,7 @@
 
   // world landmass — pale steel
   var worldMat = new THREE.PointsMaterial({
-    size: 0.013, map: steelTex, color: 0xBBCCDC, transparent: true, opacity: 0.85,
+    size: 0.0145, map: steelTex, color: 0xC6D5E3, transparent: true, opacity: 0.95,
     depthWrite: false, sizeAttenuation: true
   });
   if(typeof WORLD_POINTS !== 'undefined'){
@@ -71,7 +71,7 @@
   }
   // South America — gold
   var saMat = new THREE.PointsMaterial({
-    size: 0.015, map: goldTex, color: 0xC9A961, transparent: true, opacity: 0.95,
+    size: 0.0168, map: goldTex, color: 0xD4B570, transparent: true, opacity: 1,
     depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
   });
   if(typeof SA_POINTS !== 'undefined'){
@@ -113,7 +113,7 @@
       new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
     );
   }
-  var grat = ballLines(R * 1.0, 0x8ba2b9, 0.46);
+  var grat = ballLines(R * 1.0, 0x8ba2b9, 0.34);
   world.add(grat);
 
   // atmosphere glow

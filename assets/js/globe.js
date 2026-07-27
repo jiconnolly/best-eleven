@@ -50,7 +50,7 @@
   var saGeo = new THREE.BufferGeometry();
   saGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   var saMat = new THREE.PointsMaterial({
-    size: 0.016, map: goldTex, transparent: true, opacity: 0.95,
+    size: 0.0178, map: goldTex, transparent: true, opacity: 1,
     depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
     color: 0xC9A961
   });
@@ -89,7 +89,7 @@
       new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
     );
   }
-  world.add(ballLines(R * 1.0, 0x8ea5bc, 0.42));
+  world.add(ballLines(R * 1.0, 0x8ea5bc, 0.32));
 
   // atmosphere: a rim of light so the silhouette separates from the page
   (function(){
