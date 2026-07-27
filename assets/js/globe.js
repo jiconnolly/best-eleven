@@ -56,30 +56,51 @@
   });
   world.add(new THREE.Points(saGeo, saMat));
 
-  // --- faint graticule dot sphere for globe context ---
-  var gPts = [];
-  for(var lat = -80; lat <= 80; lat += 10){
-    for(var lon = -180; lon < 180; lon += 4){
-      gPts.push(lon, lat);
-    }
+  // solid shell so the far side is hidden and the sphere reads as a planet
+  var shell = new THREE.Mesh(
+    new THREE.SphereGeometry(R * 0.985, 64, 48),
+    new THREE.MeshBasicMaterial({ color: 0x0a141d })
+  );
+  world.add(shell);
+
+  // graticule as real lines, visible enough to give the planet structure
+  function gratLines(r, step, color, opacity){
+    var pts = [];
+    for(var lo = -180; lo < 180; lo += step)
+      for(var la = -86; la < 86; la += 4) pts.push(ll2v(lo, la, r), ll2v(lo, la + 4, r));
+    for(var la2 = -75; la2 <= 75; la2 += step)
+      for(var lo2 = -180; lo2 < 180; lo2 += 4) pts.push(ll2v(lo2, la2, r), ll2v(lo2 + 4, la2, r));
+    return new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
+    );
   }
-  for(var lon2 = -180; lon2 < 180; lon2 += 10){
-    for(var lat2 = -85; lat2 <= 85; lat2 += 4){
-      gPts.push(lon2, lat2);
-    }
-  }
-  var gn = gPts.length / 2;
-  var gpos = new Float32Array(gn * 3);
-  for(var j = 0; j < gn; j++){
-    var gv = ll2v(gPts[j*2], gPts[j*2+1], R);
-    gpos[j*3] = gv.x; gpos[j*3+1] = gv.y; gpos[j*3+2] = gv.z;
-  }
-  var gGeo = new THREE.BufferGeometry();
-  gGeo.setAttribute('position', new THREE.BufferAttribute(gpos, 3));
-  world.add(new THREE.Points(gGeo, new THREE.PointsMaterial({
-    size: 0.006, map: dimTex, transparent: true, opacity: 0.16,
-    depthWrite: false, color: 0x8fa3b8, sizeAttenuation: true
-  })));
+  world.add(gratLines(R * 1.001, 15, 0x8ea5bc, 0.36));
+
+  var eqPts = [];
+  for(var eo = -180; eo < 180; eo += 3) eqPts.push(ll2v(eo, 0, R * 1.002), ll2v(eo + 3, 0, R * 1.002));
+  world.add(new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(eqPts),
+    new THREE.LineBasicMaterial({ color: 0xC9A961, transparent: true, opacity: 0.44, depthWrite: false })
+  ));
+
+  // atmosphere: a rim of light so the silhouette separates from the page
+  (function(){
+    var c = document.createElement('canvas'); c.width = c.height = 256;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(128,128,0,128,128,128);
+    g.addColorStop(0,    'rgba(120,150,190,0)');
+    g.addColorStop(0.62, 'rgba(120,150,190,0)');
+    g.addColorStop(0.745,'rgba(150,180,220,0.26)');
+    g.addColorStop(0.86, 'rgba(120,155,200,0.11)');
+    g.addColorStop(1,    'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0,0,256,256);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false
+    }));
+    sp.scale.setScalar(2.72);
+    world.add(sp);
+  })();
 
   // --- club city nodes ---
   var cities = [

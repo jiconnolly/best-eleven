@@ -80,23 +80,44 @@
     makeExplosive(sGeo, saMat, 0.015, 0.95, 5.5);
   }
 
-  // faint graticule
-  var gp = [];
-  for(var la = -75; la <= 75; la += 15) for(var lo = -180; lo < 180; lo += 3) gp.push(lo, la);
-  for(var lo2 = -180; lo2 < 180; lo2 += 15) for(var la2 = -85; la2 <= 85; la2 += 3) gp.push(lo2, la2);
-  var gratMat = new THREE.PointsMaterial({
-    size: 0.004, map: steelTex, color: 0x6c7f92, transparent: true, opacity: 0.14,
-    depthWrite: false, sizeAttenuation: true
-  });
-  world.add(new THREE.Points(cloud(gp, R * 0.998), gratMat));
+  // solid shell: hides the far side so the planet reads as a body, not a cloud
+  var shell = new THREE.Mesh(
+    new THREE.SphereGeometry(R * 0.985, 64, 48),
+    new THREE.MeshBasicMaterial({ color: 0x07101a })
+  );
+  world.add(shell);
+
+  // graticule drawn as real lines instead of faint dots
+  function gratLines(r, step, color, opacity){
+    var pts = [];
+    for(var lo = -180; lo < 180; lo += step)
+      for(var la = -86; la < 86; la += 4) pts.push(ll2v(lo, la, r), ll2v(lo, la + 4, r));
+    for(var la2 = -75; la2 <= 75; la2 += step)
+      for(var lo2 = -180; lo2 < 180; lo2 += 4) pts.push(ll2v(lo2, la2, r), ll2v(lo2 + 4, la2, r));
+    return new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
+    );
+  }
+  var grat = gratLines(R * 1.001, 15, 0x8ba2b9, 0.38);
+  world.add(grat);
+
+  // equator, a shade brighter so the tilt reads
+  var eqPts = [];
+  for(var eo = -180; eo < 180; eo += 3) eqPts.push(ll2v(eo, 0, R * 1.002), ll2v(eo + 3, 0, R * 1.002));
+  var equator = new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(eqPts),
+    new THREE.LineBasicMaterial({ color: 0xB4CBE0, transparent: true, opacity: 0.46, depthWrite: false })
+  );
+  world.add(equator);
 
   // atmosphere glow
   var glowC = document.createElement('canvas'); glowC.width = glowC.height = 256;
   var gx = glowC.getContext('2d');
   var gg = gx.createRadialGradient(128,128,70,128,128,128);
   gg.addColorStop(0, 'rgba(90,120,150,0)');
-  gg.addColorStop(0.72, 'rgba(120,150,185,0.14)');
-  gg.addColorStop(0.88, 'rgba(160,190,220,0.07)');
+  gg.addColorStop(0.72, 'rgba(126,158,196,0.30)');
+  gg.addColorStop(0.86, 'rgba(172,202,232,0.17)');
   gg.addColorStop(1, 'rgba(0,0,0,0)');
   gx.fillStyle = gg; gx.fillRect(0,0,256,256);
   var glow = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -299,7 +320,8 @@
         ex.mat.size = ex.baseSize * (1 + p * 2.2);
         ex.mat.opacity = ex.baseOpacity * (1 - 0.45 * p);
       }
-      gratMat.opacity = 0.14 * (1 - p);
+      grat.material.opacity = 0.38 * (1 - p);
+      equator.material.opacity = 0.46 * (1 - p);
       glow.scale.setScalar(3.0 + pe * 2.2);
 
       if(!flashOn && p > 0.55){
@@ -383,6 +405,7 @@
       return;
     }
     entering = true;
+    shell.visible = false; grat.visible = false; equator.visible = false;
     tEnter = clock.getElapsedTime();
     gate.classList.add('entering');
   }
