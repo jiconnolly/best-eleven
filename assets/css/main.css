@@ -593,30 +593,36 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 
 /* ---------- gate: enter button drawn as a football pitch ---------- */
 .btn-pitch{
+  position:relative;
   background:none;border:0;padding:0;margin:0;
-  display:flex;flex-direction:column;align-items:center;gap:0.85rem;
+  display:inline-flex;align-items:center;justify-content:center;
   cursor:pointer;pointer-events:auto;   /* .gate-inner is pointer-events:none */
   -webkit-tap-highlight-color:transparent;
+  transition:transform .4s var(--ease);
 }
 .btn-pitch .pitch{
-  width:clamp(190px,25vw,248px);height:auto;display:block;overflow:visible;
-  transition:transform .4s var(--ease),filter .4s var(--ease);
+  width:clamp(95px,12.5vw,124px);height:auto;display:block;overflow:visible;
+  transition:filter .4s var(--ease);
 }
 .btn-pitch .pitch-fill{ fill:rgba(201,169,97,0.035);transition:fill .4s var(--ease); }
-.btn-pitch .pitch-lines{ stroke:var(--gold);stroke-width:1.1;opacity:.62;transition:opacity .4s var(--ease); }
+.btn-pitch .pitch-lines{ stroke:var(--gold);stroke-width:1.1;opacity:.55;transition:opacity .4s var(--ease); }
 .btn-pitch .pitch-lines .spot{ fill:var(--gold);stroke:none; }
+/* label sits inside the pitch, sized in px so it stays legible as the pitch shrinks */
 .btn-pitch .pitch-label{
-  font-size:0.78rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;
-  color:var(--gold);display:inline-flex;align-items:center;gap:0.6rem;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:clamp(0.54rem,1.05vw,0.66rem);font-weight:700;
+  letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--gold);white-space:nowrap;pointer-events:none;
+  text-shadow:0 0 7px rgba(10,15,21,0.95),0 0 3px rgba(10,15,21,1);
   transition:color .35s var(--ease);
 }
-.btn-pitch:hover .pitch{ transform:translateY(-3px);filter:drop-shadow(0 8px 26px rgba(201,169,97,0.26)); }
+.btn-pitch:hover{ transform:translateY(-3px); }
+.btn-pitch:hover .pitch{ filter:drop-shadow(0 8px 22px rgba(201,169,97,0.26)); }
 .btn-pitch:hover .pitch-lines{ opacity:1; }
 .btn-pitch:hover .pitch-fill{ fill:rgba(201,169,97,0.07); }
 .btn-pitch:hover .pitch-label{ color:var(--gold-bright,#e2c47a); }
-.btn-pitch:hover .arr{ transform:translateX(4px); }
-.btn-pitch:active .pitch{ transform:translateY(-1px) scale(.985); }
+.btn-pitch:active{ transform:translateY(-1px) scale(.985); }
 .btn-pitch:focus-visible{ outline:2px solid var(--gold);outline-offset:6px;border-radius:2px; }
 @media (prefers-reduced-motion: reduce){
-  .btn-pitch .pitch,.btn-pitch .arr{ transition:none; }
+  .btn-pitch,.btn-pitch .pitch{ transition:none; }
 }
