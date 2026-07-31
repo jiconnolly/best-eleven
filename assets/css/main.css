@@ -590,3 +590,33 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 .gate-crests{ display:flex; align-items:center; justify-content:center; gap:clamp(1rem,3.4vw,1.9rem); }
 .gate-crests img{ height:clamp(34px,4.6vw,46px); width:auto; object-fit:contain; opacity:0.96; }
 @media (max-width:520px){ .gate-crests{ gap:1rem; } }
+
+/* ---------- gate: enter button drawn as a football pitch ---------- */
+.btn-pitch{
+  background:none;border:0;padding:0;margin:0;
+  display:flex;flex-direction:column;align-items:center;gap:0.85rem;
+  cursor:pointer;pointer-events:auto;   /* .gate-inner is pointer-events:none */
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-pitch .pitch{
+  width:clamp(190px,25vw,248px);height:auto;display:block;overflow:visible;
+  transition:transform .4s var(--ease),filter .4s var(--ease);
+}
+.btn-pitch .pitch-fill{ fill:rgba(201,169,97,0.035);transition:fill .4s var(--ease); }
+.btn-pitch .pitch-lines{ stroke:var(--gold);stroke-width:1.1;opacity:.62;transition:opacity .4s var(--ease); }
+.btn-pitch .pitch-lines .spot{ fill:var(--gold);stroke:none; }
+.btn-pitch .pitch-label{
+  font-size:0.78rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--gold);display:inline-flex;align-items:center;gap:0.6rem;
+  transition:color .35s var(--ease);
+}
+.btn-pitch:hover .pitch{ transform:translateY(-3px);filter:drop-shadow(0 8px 26px rgba(201,169,97,0.26)); }
+.btn-pitch:hover .pitch-lines{ opacity:1; }
+.btn-pitch:hover .pitch-fill{ fill:rgba(201,169,97,0.07); }
+.btn-pitch:hover .pitch-label{ color:var(--gold-bright,#e2c47a); }
+.btn-pitch:hover .arr{ transform:translateX(4px); }
+.btn-pitch:active .pitch{ transform:translateY(-1px) scale(.985); }
+.btn-pitch:focus-visible{ outline:2px solid var(--gold);outline-offset:6px;border-radius:2px; }
+@media (prefers-reduced-motion: reduce){
+  .btn-pitch .pitch,.btn-pitch .arr{ transition:none; }
+}
