@@ -1,0 +1,8 @@
+# TEMPORARY: keeps the whole site out of search results while the investor round
+# is open. Delete this file (and the robots meta tags in the HTML) to go public.
+#
+# Note: crawling stays ALLOWED on purpose. A crawler has to be able to fetch the
+# page to see this header; blocking it in robots.txt instead would leave bare URLs
+# listed with no description and no way to remove them.
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex
