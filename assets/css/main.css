@@ -5,10 +5,15 @@
    ============================================================ */
 
 :root{
-  --navy-deep:#0A0F15;
+  /* four distinct steps, so stacked sections actually read as separate planes */
+  --navy-deep:#05090E;
   --navy:#101920;
-  --navy-2:#141F29;
-  --navy-3:#182634;
+  --navy-2:#18242F;
+  --navy-3:#1F2E3B;
+  /* third colour: pitch green, desaturated almost to black — carries the football
+     identity into the surfaces without competing with the gold */
+  --pitch:#0A1712;
+  --pitch-line:rgba(126,186,148,0.028);
   --gold:#C9A961;
   --gold-bright:#E4CB8E;
   --gold-dim:rgba(201,169,97,0.55);
@@ -55,17 +60,17 @@ p.lead{font-size:clamp(1.05rem,1.5vw,1.25rem);color:var(--ink);max-width:60ch;}
 p.body{color:var(--ink-m);max-width:64ch;}
 
 .eyebrow{
-  font-size:0.68rem;
+  font-size:0.72rem;
   font-weight:600;
-  letter-spacing:0.32em;
+  letter-spacing:0.2em;
   text-transform:uppercase;
   color:var(--gold);
   margin-bottom:1.1rem;
 }
 .label{
-  font-size:0.62rem;
+  font-size:0.7rem;
   font-weight:600;
-  letter-spacing:0.22em;
+  letter-spacing:0.16em;
   text-transform:uppercase;
   color:var(--ink-m);
 }
@@ -91,6 +96,17 @@ section{position:relative;}
 .section{padding:clamp(4.5rem,9vw,8.5rem) 0;}
 .section-tint{background:var(--navy-deep);}
 .section-tint2{background:var(--navy-2);}
+/* pitch green, with the faint stripes of a mown field */
+.section-pitch{background:var(--pitch);}
+.section-pitch::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  /* soft ramps, not hard bands — the stripes should be felt, not counted */
+  background:repeating-linear-gradient(90deg,
+    rgba(126,186,148,0) 0%,
+    var(--pitch-line) 3.5%,
+    rgba(126,186,148,0) 7%);
+}
+.section-pitch > *{position:relative;}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;}
@@ -104,12 +120,18 @@ section{position:relative;}
   transition:background .4s,border-color .4s, backdrop-filter .4s;
   border-bottom:1px solid transparent;
 }
-.nav.scrolled{
-  background:rgba(10,15,21,0.82);
+/* The blur lives on a pseudo-element, not on .nav itself: backdrop-filter makes
+   its element a containing block for position:fixed descendants, which trapped
+   the full-screen mobile menu inside the 76px bar as soon as the page scrolled. */
+.nav::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  background:rgba(5,9,14,0.82);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
-  border-bottom-color:var(--line-soft);
+  opacity:0;transition:opacity .4s;
 }
+.nav.scrolled::before{opacity:1;}
+.nav.scrolled{border-bottom-color:var(--line-soft);}
 .nav-inner{
   max-width:var(--max);margin:0 auto;width:100%;
   padding:0 clamp(1.2rem,4vw,3rem);
@@ -187,12 +209,12 @@ section{position:relative;}
 }
 .hero-stats-inner{
   max-width:var(--max);margin:0 auto;padding:1.4rem clamp(1.2rem,4vw,3rem);
-  display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
 }
 .hstat{opacity:0;}
 .hstat .n{font-family:'Fraunces',serif;font-size:clamp(1.5rem,2.6vw,2.2rem);color:var(--beige);line-height:1;}
 .hstat .n b{color:var(--gold);font-weight:500;}
-.hstat .t{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-m);margin-top:0.45rem;}
+.hstat .t{font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-m);margin-top:0.45rem;}
 
 .scroll-hint{
   position:absolute;bottom:110px;left:50%;transform:translateX(-50%);z-index:3;
@@ -224,7 +246,7 @@ section{position:relative;}
 }
 .club-card:hover::before{opacity:1;}
 .club-card img.crest{height:74px;width:auto;object-fit:contain;align-self:flex-start;filter:drop-shadow(0 6px 18px rgba(0,0,0,0.5));}
-.club-card .country{font-size:0.62rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);}
+.club-card .country{font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);}
 .club-card h3{font-size:1.35rem;}
 .club-card .div{font-size:0.8rem;color:var(--ink-m);}
 .club-card .go{
@@ -241,7 +263,7 @@ section{position:relative;}
 .plate .cap{
   position:absolute;left:0;right:0;bottom:0;
   padding:0.85rem 1.1rem;
-  font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--beige);
+  font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--beige);
   background:linear-gradient(180deg,rgba(10,15,21,0),rgba(10,15,21,0.85));
 }
 
@@ -251,7 +273,7 @@ section{position:relative;}
 .sem-step + .sem-step{border-left:1px solid var(--line-soft);}
 .sem-step .num{font-family:'Fraunces',serif;font-size:0.9rem;color:var(--gold-dim);letter-spacing:0.1em;}
 .sem-step h3{font-size:1.3rem;margin:0.7rem 0 0.4rem;}
-.sem-step .tag{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:0.9rem;}
+.sem-step .tag{font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-m);margin-bottom:0.9rem;}
 .sem-step p{font-size:0.9rem;color:var(--ink-m);}
 .sem-step::after{
   content:'→';position:absolute;top:2.5rem;right:-0.62rem;z-index:2;
@@ -293,7 +315,7 @@ section{position:relative;}
   font-family:'Fraunces',serif;font-size:clamp(2.4rem,5vw,3.8rem);
   color:var(--gold);line-height:1;
 }
-.stat-block .t{font-size:0.66rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-m);margin-top:0.6rem;}
+.stat-block .t{font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-m);margin-top:0.6rem;}
 
 /* ---------- Club detail (clubs.html) ---------- */
 .club-hero{
@@ -308,7 +330,7 @@ section{position:relative;}
 .club-head img{height:88px;width:auto;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(0,0,0,0.55));}
 .club-meta{display:flex;gap:2.5rem;flex-wrap:wrap;margin-top:2rem;position:relative;z-index:1;}
 .club-meta .m .v{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--gold);}
-.club-meta .m .k{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-m);margin-top:0.3rem;}
+.club-meta .m .k{font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-m);margin-top:0.3rem;}
 
 /* ---------- Team ---------- */
 .team-card{text-align:left;padding:2.4rem 2rem;}
@@ -318,7 +340,7 @@ section{position:relative;}
 }
 .team-card .ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(15%);}
 .team-card h3{font-size:1.25rem;}
-.team-card .role{font-size:0.64rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin:0.4rem 0 0.9rem;}
+.team-card .role{font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin:0.4rem 0 0.9rem;}
 
 /* ---------- Invest ---------- */
 .invest-hero{
@@ -358,7 +380,7 @@ footer{
 .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:2.5rem;align-items:start;}
 .foot-grid .logo img{height:24px;margin-bottom:1rem;}
 .foot-grid p{font-size:0.82rem;color:var(--ink-m);max-width:36ch;}
-.foot-grid h5{font-size:0.62rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:600;}
+.foot-grid h5{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:600;}
 .foot-grid ul{list-style:none;}
 .foot-grid li{margin-bottom:0.55rem;}
 .foot-grid li a{font-size:0.85rem;color:var(--ink-m);transition:color .3s;}
@@ -398,15 +420,16 @@ html.no-js .hero-ctas,html.reduced .hero-ctas{opacity:1;}
 }
 @media(max-width:860px){
   .nav-links{
-    position:fixed;inset:0;background:rgba(10,15,21,0.97);backdrop-filter:blur(10px);
+    position:fixed;inset:0;background:rgba(5,9,14,0.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
     flex-direction:column;justify-content:center;gap:2.2rem;
     transform:translateY(-100%);transition:transform .5s var(--ease);z-index:105;
   }
   .nav-links.open{transform:translateY(0);}
   .nav-links a{font-size:1rem;}
   .burger{display:block;}
-  .hero-stats-inner{grid-template-columns:1fr 1fr;gap:1.1rem;}
-  .hero-content{padding-bottom:215px;}
+  .hero-stats-inner{grid-template-columns:repeat(3,1fr);gap:0.9rem;}
+  .hstat .t{font-size:0.6rem;letter-spacing:0.1em;}
+  .hero-content{padding-bottom:170px;}
   .promo-row{grid-template-columns:auto 1fr;}
   .promo-row .val{grid-column:2;}
 }
@@ -478,7 +501,7 @@ body.gated{overflow:hidden;}
 html.reduced .gate-radar .sweep{animation:none;opacity:0.35;}
 @keyframes gsweep{to{transform:rotate(360deg);}}
 .gate-title{
-  font-size:0.72rem;font-weight:700;letter-spacing:0.44em;text-transform:uppercase;
+  font-size:0.76rem;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;
   color:var(--beige);
 }
 .gate-sub{
@@ -487,7 +510,7 @@ html.reduced .gate-radar .sweep{animation:none;opacity:0.35;}
 }
 .gate-lang{position:absolute;top:1.4rem;right:clamp(1.2rem,4vw,3rem);z-index:3;}
 @media(max-width:560px){
-  .gate-title{letter-spacing:0.3em;}
+  .gate-title{letter-spacing:0.22em;}
 }
 
 /* gate enter effect */
@@ -553,7 +576,7 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
   width:clamp(72px,9vw,104px);height:clamp(72px,9vw,104px);transition:transform .4s cubic-bezier(.2,.8,.2,1);}
 .crest-btn-inner img{width:100%;height:100%;object-fit:contain;
   filter:drop-shadow(0 6px 14px rgba(0,0,0,0.45));transition:filter .4s ease;}
-.crest-btn-name{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-m);
+.crest-btn-name{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-m);
   transition:color .35s ease;font-weight:500;}
 .crest-btn:hover,.crest-btn:focus-visible{transform:translateY(-6px);
   border-color:color-mix(in srgb, var(--glow) 45%, rgba(255,255,255,0.1));
@@ -583,7 +606,7 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 .gate-brand-main .bb{ color:var(--gold); }
 .gate-brand-main .ee{ color:#FFFFFF; }
 .gate-brand-sub{
-  font-size:clamp(0.6rem,1.7vw,0.84rem); letter-spacing:0.42em; font-weight:400;
+  font-size:clamp(0.66rem,1.8vw,0.88rem); letter-spacing:0.3em; font-weight:400;
   color:var(--ink-m); line-height:1.1;
 }
 .gate-bottom{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
@@ -626,3 +649,92 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 @media (prefers-reduced-motion: reduce){
   .btn-pitch,.btn-pitch .pitch{ transition:none; }
 }
+
+
+/* ---- Gate · map reference caption (bottom-left, deliberately quiet) ---- */
+.gate-ref{
+  position:absolute; left:clamp(1.2rem,4vw,3rem); bottom:clamp(1.2rem,3vw,1.9rem);
+  z-index:3; pointer-events:none;
+  display:flex; align-items:center; gap:0.62rem;
+  font-family:'B612 Mono','Courier New',monospace;
+  font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:rgba(168,164,153,0.42);
+}
+.gate-ref::before{
+  content:''; width:16px; height:1px; flex:none;
+  background:rgba(201,169,97,0.4);
+}
+.gate-ref b{ font-weight:400; color:rgba(201,169,97,0.62); }
+#gate.entering .gate-ref{ opacity:0; transition:opacity .35s ease; }
+@media(max-width:560px){
+  .gate-ref{ font-size:0.54rem; letter-spacing:0.14em; gap:0.45rem; }
+  .gate-ref::before{ width:11px; }
+}
+
+/* ---- Home · club strip: the four assets, stated once and quietly ---- */
+.club-strip{
+  background:var(--navy-2);
+  border-top:1px solid var(--line-soft);
+  border-bottom:1px solid var(--line-soft);
+  padding:clamp(2.2rem,4vw,3rem) 0;
+}
+.club-strip-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:1rem; flex-wrap:wrap; margin-bottom:clamp(1.6rem,3vw,2.2rem);
+}
+.club-strip-head .eyebrow{margin-bottom:0;}
+.club-strip-link{
+  font-size:0.7rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
+  color:var(--ink-m); display:inline-flex; align-items:center; gap:0.5rem;
+  transition:color .3s;
+}
+.club-strip-link:hover{color:var(--beige);}
+.club-strip-link .arr{transition:transform .3s;}
+.club-strip-link:hover .arr{transform:translateX(4px);}
+
+.club-strip-inner{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:clamp(0.9rem,2.4vw,2rem);
+}
+.club-chip{
+  display:flex; align-items:center; gap:0.95rem;
+  padding:0.7rem 0.2rem 0.9rem; position:relative;
+  transition:transform .35s var(--ease);
+}
+.club-chip::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:var(--glow,var(--gold)); opacity:0; transition:opacity .35s ease;
+}
+.club-chip img{
+  height:46px; width:46px; flex:none; object-fit:contain;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  transition:transform .35s var(--ease), filter .35s ease;
+}
+.club-chip .n{
+  display:block; font-size:0.86rem; font-weight:600; color:var(--ink);
+  line-height:1.25; transition:color .3s;
+}
+.club-chip .c{
+  display:block; margin-top:0.28rem;
+  font-size:0.62rem; letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-m);
+}
+.club-chip:hover{transform:translateY(-3px);}
+.club-chip:hover::after{opacity:0.75;}
+.club-chip:hover img{transform:scale(1.06);filter:drop-shadow(0 6px 16px color-mix(in srgb,var(--glow,var(--gold)) 45%,rgba(0,0,0,0.5)));}
+.club-chip:hover .n{color:var(--beige);}
+@media(max-width:860px){
+  .club-strip-inner{grid-template-columns:1fr 1fr;gap:1rem 1.4rem;}
+}
+@media(max-width:420px){
+  .club-strip-inner{grid-template-columns:1fr;}
+  .club-chip img{height:40px;width:40px;}
+}
+
+/* ---- Footer · country flags drawn as SVG (emoji render as letters on Windows) ---- */
+.foot-flags{display:flex;align-items:center;gap:0.6rem;letter-spacing:normal;}
+.foot-flags svg{
+  width:21px;height:14px;display:block;border-radius:1px;
+  box-shadow:0 0 0 1px rgba(253,248,238,0.14);
+  opacity:0.85;transition:opacity .3s;
+}
+.foot-flags svg:hover{opacity:1;}

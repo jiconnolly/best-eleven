@@ -26,6 +26,7 @@
 <!-- ============ ENTRY GATE ============ -->
 <div id="gate" role="dialog" aria-label="Best Eleven Sports Group" tabindex="-1">
   <div id="gateGlobe" aria-hidden="true"></div>
+  <div class="gate-ref" aria-hidden="true"><span data-es-html="Tierra: <b>BESG HQ</b>">Earth: <b>BESG HQ</b></span></div>
   <div class="gate-lang lang-toggle" role="group" aria-label="Language">
     <button data-lang="en" type="button">EN</button>
     <button data-lang="es" type="button">ES</button>
@@ -121,12 +122,39 @@
   <div class="hero-stats">
     <div class="hero-stats-inner">
       <div class="hstat"><div class="n"><b>4</b></div><div class="t" data-es="Clubes bajo control">Controlled clubs</div></div>
-      <div class="hstat"><div class="n"><b>4</b></div><div class="t" data-es="Países">Countries</div></div>
       <div class="hstat"><div class="n">+<b data-count="11000">11,000</b></div><div class="t" data-es="Jugadores monitoreados">Players monitored</div></div>
       <div class="hstat"><div class="n"><b>20</b>+</div><div class="t" data-es="Años en el fútbol">Years in football</div></div>
     </div>
   </div>
 </header>
+
+<!-- ============ CLUB STRIP ============ -->
+<section class="club-strip">
+  <div class="wrap">
+    <div class="club-strip-head">
+      <div class="eyebrow" data-es="Los cuatro clubes">The four clubs</div>
+      <a href="clubs.html" class="club-strip-link"><span data-es="Ver los clubes">See the clubs</span> <span class="arr">→</span></a>
+    </div>
+    <div class="club-strip-inner">
+      <a href="clubs.html#colegiales" class="club-chip" style="--glow:#D5202B;">
+        <img src="assets/img/crest-colegiales.png" alt="" loading="lazy" width="46" height="46">
+        <span><span class="n">Club Atlético Colegiales</span><span class="c">Argentina · <span data-es="2ª División">2nd Division</span></span></span>
+      </a>
+      <a href="clubs.html#rubio-nu" class="club-chip" style="--glow:#0F9D4C;">
+        <img src="assets/img/crest-rubio.png" alt="" loading="lazy" width="46" height="46">
+        <span><span class="n">Club Rubio Ñu</span><span class="c">Paraguay · Primera</span></span>
+      </a>
+      <a href="clubs.html#lito" class="club-chip" style="--glow:#1E6FD6;">
+        <img src="assets/img/crest-lito.png" alt="" loading="lazy" width="46" height="46">
+        <span><span class="n">Centro Atlético Lito</span><span class="c">Uruguay · <span data-es="3ª División">3rd Division</span></span></span>
+      </a>
+      <a href="clubs.html#miami" class="club-chip" style="--glow:#C50075;">
+        <img src="assets/img/crest-miami.png" alt="" loading="lazy" width="46" height="46">
+        <span><span class="n">Miami United FC</span><span class="c">USA · <span data-es="Puerta al mercado">Market gateway</span></span></span>
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- ============ WHO WE ARE ============ -->
 <section class="section">
@@ -169,7 +197,7 @@
 </section>
 
 <!-- ============ SEMILLERO ============ -->
-<section class="section">
+<section class="section section-pitch">
   <div class="wrap">
     <div class="grid-2" style="align-items:end;margin-bottom:3rem;">
       <div class="reveal">
@@ -240,7 +268,12 @@
     </div>
     <div class="foot-bottom">
       <div>© 2026 Best Eleven Sports Group</div>
-      <div class="foot-flags">🇦🇷 🇵🇾 🇺🇾 🇺🇸</div>
+      <div class="foot-flags" aria-hidden="true">
+        <svg viewBox="0 0 21 14"><rect width="21" height="14" fill="#74ACDF"/><rect y="4.667" width="21" height="4.666" fill="#FFF"/><circle cx="10.5" cy="7" r="1.5" fill="#F6B40E"/></svg>
+        <svg viewBox="0 0 21 14"><rect width="21" height="14" fill="#D52B1E"/><rect y="4.667" width="21" height="4.666" fill="#FFF"/><rect y="9.333" width="21" height="4.667" fill="#0038A8"/><circle cx="10.5" cy="7" r="1.35" fill="#FFF" stroke="#0038A8" stroke-width=".35"/></svg>
+        <svg viewBox="0 0 21 14"><rect width="21" height="14" fill="#FFF"/><g fill="#0038A8"><rect x="7" y="1.556" width="14" height="1.556"/><rect x="7" y="4.667" width="14" height="1.555"/><rect y="7.778" width="21" height="1.555"/><rect y="10.889" width="21" height="1.556"/></g><circle cx="3.5" cy="3.9" r="1.55" fill="#F6B40E"/></svg>
+        <svg viewBox="0 0 21 14"><rect width="21" height="14" fill="#B22234"/><g fill="#FFF"><rect y="1.077" width="21" height="1.077"/><rect y="3.231" width="21" height="1.077"/><rect y="5.385" width="21" height="1.077"/><rect y="7.538" width="21" height="1.077"/><rect y="9.692" width="21" height="1.077"/><rect y="11.846" width="21" height="1.077"/></g><rect width="8.4" height="7.538" fill="#3C3B6E"/></svg>
+      </div>
       <div>Argentina · Paraguay · Uruguay · USA</div>
     </div>
   </div>
