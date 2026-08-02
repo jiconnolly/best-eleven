@@ -80,58 +80,12 @@
     makeExplosive(sGeo, saMat, 0.015, 0.95, 5.5);
   }
 
-  // solid shell: hides the far side so the planet reads as a body, not a cloud.
-  // Grained rather than flat, so the surface reads as panelled leather.
-  function ballTex(){
-    var S = 512, c = document.createElement('canvas'); c.width = c.height = S;
-    var x = c.getContext('2d');
-    x.fillStyle = '#07101a'; x.fillRect(0, 0, S, S);
-    // broad mottling — the unevenness of a stitched panel
-    for(var i = 0; i < 150; i++){
-      var cx = Math.random() * S, cy = Math.random() * S, rr = 20 + Math.random() * 60;
-      var g = x.createRadialGradient(cx, cy, 0, cx, cy, rr);
-      var a = 0.03 + Math.random() * 0.05;
-      g.addColorStop(0, 'rgba(126,152,180,' + a + ')');
-      g.addColorStop(1, 'rgba(126,152,180,0)');
-      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, rr, 0, Math.PI * 2); x.fill();
-    }
-    // fine grain
-    var img = x.getImageData(0, 0, S, S), d = img.data;
-    for(var p = 0; p < d.length; p += 4){
-      var n = (Math.random() - 0.5) * 13;
-      d[p] += n; d[p+1] += n; d[p+2] += n;
-    }
-    x.putImageData(img, 0, 0);
-    var t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(3, 2);
-    return t;
-  }
+  // solid shell: hides the far side so the planet reads as a body, not a cloud
   var shell = new THREE.Mesh(
     new THREE.SphereGeometry(R * 0.992, 64, 48),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, map: ballTex() })
+    new THREE.MeshBasicMaterial({ color: 0x07101a })
   );
   world.add(shell);
-
-  // camera-locked sheen: gives the sphere volume so it reads as a ball, not a disc.
-  // Lives in the scene (not `world`), so it stays put while the planet turns.
-  var sheen = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: (function(){
-      var c = document.createElement('canvas'); c.width = c.height = 256;
-      var x = c.getContext('2d');
-      var g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
-      g.addColorStop(0, 'rgba(188,214,240,0.5)');
-      g.addColorStop(0.5, 'rgba(150,180,214,0.14)');
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      x.fillStyle = g; x.fillRect(0, 0, 256, 256);
-      return new THREE.CanvasTexture(c);
-    })(),
-    transparent: true, opacity: 0.30, depthWrite: false,
-    blending: THREE.AdditiveBlending
-  }));
-  sheen.position.set(-0.34, 0.36, 1.02);
-  sheen.scale.setScalar(1.15);
-  scene.add(sheen);
 
   // truncated icosahedron: the panel pattern of a football (12 pentagons + 20 hexagons)
   var BALL_V=[-0.2018,-0.73,-0.653,-0.4035,-0.8547,-0.3265,-0.3265,-0.4035,-0.8547,-0.653,-0.2018,-0.73,0,-0.2018,-0.9794,0,0.2018,-0.9794,0.2018,-0.73,-0.653,0.4035,-0.8547,-0.3265,0.3265,-0.4035,-0.8547,0.653,-0.2018,-0.73,-0.73,-0.653,-0.2018,-0.8547,-0.3265,-0.4035,-0.4035,-0.8547,0.3265,-0.2018,-0.73,0.653,-0.73,-0.653,0.2018,-0.8547,-0.3265,0.4035,-0.2018,-0.9794,0,0.2018,-0.9794,0,-0.8547,0.3265,-0.4035,-0.73,0.653,-0.2018,-0.9794,0,-0.2018,-0.9794,0,0.2018,-0.653,0.2018,-0.73,-0.3265,0.4035,-0.8547,-0.3265,-0.4035,0.8547,-0.653,-0.2018,0.73,0.2018,-0.73,0.653,0.4035,-0.8547,0.3265,0,-0.2018,0.9794,0,0.2018,0.9794,0.3265,-0.4035,0.8547,0.653,-0.2018,0.73,-0.73,0.653,0.2018,-0.8547,0.3265,0.4035,-0.4035,0.8547,-0.3265,-0.2018,0.73,-0.653,-0.4035,0.8547,0.3265,-0.2018,0.73,0.653,-0.2018,0.9794,0,0.2018,0.9794,0,-0.653,0.2018,0.73,-0.3265,0.4035,0.8547,0.3265,0.4035,-0.8547,0.653,0.2018,-0.73,0.2018,0.73,-0.653,0.4035,0.8547,-0.3265,0.73,-0.653,-0.2018,0.8547,-0.3265,-0.4035,0.73,-0.653,0.2018,0.8547,-0.3265,0.4035,0.8547,0.3265,-0.4035,0.73,0.653,-0.2018,0.9794,0,-0.2018,0.9794,0,0.2018,0.2018,0.73,0.653,0.4035,0.8547,0.3265,0.3265,0.4035,0.8547,0.653,0.2018,0.73,0.73,0.653,0.2018,0.8547,0.3265,0.4035];
@@ -467,7 +421,6 @@
       m.core.material.opacity = (m.dest ? 0.65 : 0.8) * vis * (0.4 + 0.6 * duck);
       m.label.material.opacity = (m.dest ? 0.55 : 0.72) * vis * duck;
     }
-    sheen.material.opacity = 0.30 * (1 - pNow);
 
     // export arcs: faint dashed paths + travelling gold pulses (outbound direction)
     for(var ai = 0; ai < arcs.length; ai++){
