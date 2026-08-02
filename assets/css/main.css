@@ -705,19 +705,55 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 .club-strip-inner{
   display:grid; grid-template-columns:repeat(4,1fr);
   gap:clamp(0.9rem,2.4vw,2rem);
+  perspective:900px;            /* shared vanishing point, so the row tilts as one plane */
 }
+/* --rx/--ry/--mx/--my are driven from JS by the pointer (see .tilt in main.js).
+   No overflow:hidden and no isolation here — either one flattens transform-style
+   and the crest would stop floating above the card. */
 .club-chip{
+  --rx:0deg; --ry:0deg; --mx:50%; --my:50%;
   display:flex; align-items:center; gap:0.95rem;
-  padding:0.7rem 0.2rem 0.9rem; position:relative;
-  transition:transform .35s var(--ease);
+  padding:1rem 1.1rem; position:relative;
+  border-radius:12px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.038),rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.055);
+  box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 16px 34px -26px rgba(0,0,0,0.85);
+  transform-style:preserve-3d;
+  transform:rotateX(var(--rx)) rotateY(var(--ry));
+  transition:transform .55s var(--ease), border-color .35s ease, box-shadow .35s ease, background .35s ease;
 }
+/* while the pointer is on the card the tilt is driven per-frame, so it must not
+   also be interpolated — the easing is only for the spring back on leave */
+.club-chip:hover{
+  transition:transform 0s, border-color .35s ease, box-shadow .35s ease, background .35s ease;
+  border-color:color-mix(in srgb, var(--glow,var(--gold)) 42%, rgba(255,255,255,0.1));
+  box-shadow:0 1px 0 rgba(255,255,255,0.09) inset,
+             0 26px 46px -24px rgba(0,0,0,0.9),
+             0 0 34px -8px color-mix(in srgb, var(--glow,var(--gold)) 40%, transparent);
+}
+.club-chip > *{position:relative; z-index:1;}
+/* spotlight that follows the cursor */
+.club-chip::before{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  border-radius:inherit;
+  background:radial-gradient(circle 130px at var(--mx) var(--my),
+    color-mix(in srgb, var(--glow,var(--gold)) 38%, transparent) 0%, transparent 72%);
+  opacity:0; transition:opacity .35s ease;
+}
+.club-chip:hover::before{opacity:0.5;}
+/* club-coloured underline */
 .club-chip::after{
-  content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
-  background:var(--glow,var(--gold)); opacity:0; transition:opacity .35s ease;
+  content:''; position:absolute; left:50%; bottom:0; z-index:2;
+  transform:translateX(-50%); width:72%; height:2px; border-radius:2px;
+  background:var(--glow,var(--gold)); opacity:0;
+  box-shadow:0 0 10px 0 var(--glow,var(--gold));
+  transition:opacity .35s ease;
 }
+.club-chip:hover::after{opacity:0.8;}
 .club-chip img{
   height:46px; width:46px; flex:none; object-fit:contain;
   filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  transform:translateZ(18px);           /* the crest sits proud of the card */
   transition:transform .35s var(--ease), filter .35s ease;
 }
 .club-chip .n{
@@ -728,10 +764,20 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
   display:block; margin-top:0.28rem;
   font-size:0.62rem; letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-m);
 }
-.club-chip:hover{transform:translateY(-3px);}
-.club-chip:hover::after{opacity:0.75;}
-.club-chip:hover img{transform:scale(1.06);filter:drop-shadow(0 6px 16px color-mix(in srgb,var(--glow,var(--gold)) 45%,rgba(0,0,0,0.5)));}
+.club-chip:hover img{
+  transform:translateZ(40px) scale(1.07);
+  filter:drop-shadow(0 10px 20px color-mix(in srgb,var(--glow,var(--gold)) 45%,rgba(0,0,0,0.55)));
+}
 .club-chip:hover .n{color:var(--beige);}
+.club-chip:active{transform:rotateX(var(--rx)) rotateY(var(--ry)) scale(0.985);}
+.club-chip:focus-visible{outline:2px solid var(--gold);outline-offset:4px;}
+/* no pointer to track: fall back to a plain lift */
+@media(hover:none),(prefers-reduced-motion:reduce){
+  .club-chip{transform:none;}
+  .club-chip:hover{transform:translateY(-3px);transition:transform .35s var(--ease);}
+  .club-chip img,.club-chip:hover img{transform:none;}
+  .club-chip:hover img{transform:scale(1.06);}
+}
 @media(max-width:860px){
   .club-strip-inner{grid-template-columns:1fr 1fr;gap:1rem 1.4rem;}
 }

@@ -80,6 +80,40 @@
     window.addEventListener('pageshow', function(){ veil.classList.remove('on'); });
   }
 
+  /* ---------- Cursor-tracked 3D tilt ----------
+     Feeds --rx/--ry (card rotation) and --mx/--my (spotlight position) to any
+     .tilt element. Skipped without a fine pointer, so touch keeps the plain
+     CSS lift and never gets a tilt stuck on after a tap. */
+  if(!reduced && window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    var MAX_TILT = 9;
+    document.querySelectorAll('.tilt').forEach(function(el){
+      var raf = 0, rx = 0, ry = 0, mx = 50, my = 50;
+      function paint(){
+        raf = 0;
+        el.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+        el.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+        el.style.setProperty('--mx', mx.toFixed(1) + '%');
+        el.style.setProperty('--my', my.toFixed(1) + '%');
+      }
+      function schedule(){ if(!raf) raf = requestAnimationFrame(paint); }
+      el.addEventListener('pointermove', function(e){
+        if(e.pointerType !== 'mouse') return;
+        var r = el.getBoundingClientRect();
+        if(!r.width || !r.height) return;
+        var px = (e.clientX - r.left) / r.width;
+        var py = (e.clientY - r.top) / r.height;
+        mx = px * 100; my = py * 100;
+        ry = (px - 0.5) * 2 * MAX_TILT;
+        rx = -(py - 0.5) * 2 * MAX_TILT;
+        schedule();
+      });
+      function rest(){ rx = ry = 0; mx = my = 50; schedule(); }
+      el.addEventListener('pointerleave', rest);
+      el.addEventListener('pointercancel', rest);
+      el.addEventListener('blur', rest);
+    });
+  }
+
   /* ---------- GSAP reveals ---------- */
   if(typeof gsap !== 'undefined' && !reduced){
     gsap.registerPlugin(ScrollTrigger);
