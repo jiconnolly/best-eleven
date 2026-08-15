@@ -81,10 +81,30 @@
   }
 
   // solid shell: hides the far side so the planet reads as a body, not a cloud
-  var shell = new THREE.Mesh(
-    new THREE.SphereGeometry(R * 0.992, 64, 48),
-    new THREE.MeshBasicMaterial({ color: 0x07101a })
-  );
+  var shellMat = new THREE.ShaderMaterial({
+    uniforms: { uBase:{value:new THREE.Color(0x07101a)},
+                uRim:{value:new THREE.Color(0x4d7ea8)},
+                uStrength:{value:1.0} },
+    vertexShader: [
+      'varying vec3 vN; varying vec3 vV;',
+      'void main(){',
+      '  vec4 mv = modelViewMatrix * vec4(position,1.0);',
+      '  vN = normalize(normalMatrix * normal);',
+      '  vV = normalize(-mv.xyz);',
+      '  gl_Position = projectionMatrix * mv;',
+      '}'].join('\n'),
+    fragmentShader: [
+      'uniform vec3 uBase; uniform vec3 uRim; uniform float uStrength;',
+      'varying vec3 vN; varying vec3 vV;',
+      'void main(){',
+      '  float f = 1.0 - clamp(dot(normalize(vN), normalize(vV)), 0.0, 1.0);',
+      '  float rim = pow(f, 3.2) * uStrength;',
+      '  float lat = pow(f, 1.4) * 0.16 * uStrength;',
+      '  vec3 col = mix(uBase, uBase * 0.45, lat) + uRim * rim * 0.55;',
+      '  gl_FragColor = vec4(col, 1.0);',
+      '}'].join('\n')
+  });
+  var shell = new THREE.Mesh(new THREE.SphereGeometry(R * 0.992, 96, 64), shellMat);
   world.add(shell);
 
   // truncated icosahedron: the panel pattern of a football (12 pentagons + 20 hexagons)
@@ -108,10 +128,29 @@
         }
       }
     }
-    return new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity, depthWrite: false })
-    );
+    var mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false,
+      uniforms: { uCol:{value:new THREE.Color(color)},
+                  uEdge:{value:0.95}, uCentre:{value:0.09},
+                  uPow:{value:1.0},   uFade:{value:1.0} },
+      vertexShader: [
+        'varying float vF; uniform float uPow;',
+        'void main(){',
+        '  vec3 n = normalize(position);',
+        '  vec4 mv = modelViewMatrix * vec4(position,1.0);',
+        '  vec3 nw = normalize(normalMatrix * n);',
+        '  vec3 vd = normalize(-mv.xyz);',
+        '  vF = pow(1.0 - clamp(abs(dot(nw,vd)),0.0,1.0), uPow);',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uCol; uniform float uEdge; uniform float uCentre; uniform float uFade;',
+        'varying float vF;',
+        'void main(){',
+        '  gl_FragColor = vec4(uCol, mix(uCentre, uEdge, vF) * uFade);',
+        '}'].join('\n')
+    });
+    return new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat);
   }
   var grat = ballLines(R * 1.0, 0x8ba2b9, 0.34);
   world.add(grat);
@@ -131,20 +170,80 @@
   glow.scale.setScalar(3.0);
   scene.add(glow);
 
-  // stars
+  // starfield — two parallax layers, varied sizes, slow twinkle, diffraction spikes
+  var starMat = null, starFar = null, starLayers = [];
   (function(){
-    var N = 700, pos = new Float32Array(N * 3);
-    for(var i = 0; i < N; i++){
-      var u = Math.random() * 2 - 1, t = Math.random() * Math.PI * 2, rr = 26;
-      var s = Math.sqrt(1 - u * u);
-      pos[i*3] = rr * s * Math.cos(t); pos[i*3+1] = rr * u; pos[i*3+2] = rr * s * Math.sin(t);
+    // texture with a soft core plus a faint 4-point spike, for the brightest stars
+    function spikeTex(){
+      var c = document.createElement('canvas'); c.width = c.height = 128;
+      var x = c.getContext('2d');
+      var g = x.createRadialGradient(64,64,0,64,64,26);
+      g.addColorStop(0,'rgba(255,255,255,1)');
+      g.addColorStop(0.35,'rgba(200,220,240,0.55)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(64,64,26,0,7); x.fill();
+      var lg = x.createLinearGradient(0,64,128,64);
+      lg.addColorStop(0,'rgba(0,0,0,0)'); lg.addColorStop(0.5,'rgba(210,228,245,0.5)');
+      lg.addColorStop(1,'rgba(0,0,0,0)');
+      x.fillStyle = lg; x.fillRect(0,62.2,128,3.6);
+      var lg2 = x.createLinearGradient(64,0,64,128);
+      lg2.addColorStop(0,'rgba(0,0,0,0)'); lg2.addColorStop(0.5,'rgba(210,228,245,0.5)');
+      lg2.addColorStop(1,'rgba(0,0,0,0)');
+      x.fillStyle = lg2; x.fillRect(62.2,0,3.6,128);
+      var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; return t;
     }
-    var g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    scene.add(new THREE.Points(g, new THREE.PointsMaterial({
-      size: 0.05, map: steelTex, color: 0xAFC2D4, transparent: true, opacity: 0.35,
-      depthWrite: false, sizeAttenuation: true
-    })));
+    var spikeMap = spikeTex();
+
+    // pushed out to r=40 so the planet stops hiding them; a shell, not a disc
+    function layer(N, rr, sMin, sMax, tex, alpha, tw){
+      // Only the forward cone is ever on screen: a full shell wastes ~94% of the
+      // points behind the camera or behind the planet. Generous half-angle so the
+      // parallax drift never runs the field off the edge of the frame.
+      var COS_MAX = Math.cos(58 * Math.PI / 180);
+      var pos = new Float32Array(N*3), sz = new Float32Array(N), ph = new Float32Array(N);
+      for(var i = 0; i < N; i++){
+        var cz = COS_MAX + Math.random() * (1 - COS_MAX);   // cos of polar angle
+        var sn = Math.sqrt(1 - cz*cz), t = Math.random()*Math.PI*2;
+        var rad = rr * (0.85 + Math.random()*0.3);          // slight depth spread
+        pos[i*3] = rad*sn*Math.cos(t); pos[i*3+1] = rad*sn*Math.sin(t); pos[i*3+2] = -rad*cz;
+        var m = Math.random();
+        sz[i] = sMin + m*m*(sMax - sMin);   // heavily weighted to the faint end
+        ph[i] = Math.random()*Math.PI*2;
+      }
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+      g.setAttribute('aSize',    new THREE.BufferAttribute(sz,1));
+      g.setAttribute('aPhase',   new THREE.BufferAttribute(ph,1));
+      var mat = new THREE.ShaderMaterial({
+        transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+        uniforms:{ uTime:{value:0}, uTex:{value:tex}, uAlpha:{value:alpha},
+                   uTw:{value:tw}, uMax:{value:sMax} },
+        vertexShader: [
+          'attribute float aSize; attribute float aPhase;',
+          'uniform float uTime; uniform float uTw; uniform float uMax; uniform float uAlpha;',
+          'varying float vA;',
+          'void main(){',
+          '  vec4 mv = modelViewMatrix * vec4(position,1.0);',
+          '  float tw = 1.0 - uTw + uTw*sin(uTime*1.1 + aPhase);',
+          '  vA = uAlpha * (0.30 + 0.70*(aSize/uMax)) * tw;',
+          '  gl_PointSize = max(aSize * 1300.0 / -mv.z, 0.9);',
+          '  gl_Position = projectionMatrix * mv;',
+          '}'].join('\n'),
+        fragmentShader: [
+          'uniform sampler2D uTex; varying float vA;',
+          'void main(){',
+          '  vec4 t = texture2D(uTex, gl_PointCoord);',
+          '  gl_FragColor = vec4(vec3(0.76,0.83,0.90), t.a * vA);',
+          '}'].join('\n')
+      });
+      var pts = new THREE.Points(g, mat);
+      scene.add(pts);
+      starLayers.push({mat: mat, obj: pts});
+      return mat;
+    }
+
+    starFar = layer(1700, 40, 0.030, 0.070, steelTex, 0.55, 0.10);  // deep field, barely moves
+    starMat = layer( 820, 30, 0.050, 0.210, spikeMap, 0.95, 0.26);  // near field, twinkles
   })();
 
   // city markers — Buenos Aires, Asunción, Montevideo, Miami
@@ -321,9 +420,73 @@
     return best;
   }
 
+  // ---- bloom: bright pass + separable blur at half res + additive composite ----
+  var rtScene = null, rtA = null, rtB = null, quadScene, quadCam, quadMesh, briMat, blurMat, compMat;
+  (function(){
+    quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    quadScene = new THREE.Scene();
+    quadMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
+    quadScene.add(quadMesh);
+    var VS = ['varying vec2 vUv;','void main(){ vUv = uv; gl_Position = vec4(position.xy,0.0,1.0); }'].join('\n');
+    briMat = new THREE.ShaderMaterial({ uniforms:{ tD:{value:null}, uThr:{value:0.28} },
+      vertexShader: VS, fragmentShader: [
+        'uniform sampler2D tD; uniform float uThr; varying vec2 vUv;',
+        'void main(){',
+        '  vec3 c = texture2D(tD, vUv).rgb;',
+        '  float l = dot(c, vec3(0.299,0.587,0.114));',
+        '  gl_FragColor = vec4(c * (max(l - uThr, 0.0) / max(l, 0.0001)), 1.0);',
+        '}'].join('\n') });
+    blurMat = new THREE.ShaderMaterial({ uniforms:{ tD:{value:null},
+        uDir:{value:new THREE.Vector2(1,0)}, uRes:{value:new THREE.Vector2(1,1)} },
+      vertexShader: VS, fragmentShader: [
+        'uniform sampler2D tD; uniform vec2 uDir; uniform vec2 uRes; varying vec2 vUv;',
+        'void main(){',
+        '  vec2 px = uDir / uRes;',
+        '  vec3 s = texture2D(tD, vUv).rgb * 0.2270270270;',
+        '  s += texture2D(tD, vUv + px*1.3846153846).rgb * 0.3162162162;',
+        '  s += texture2D(tD, vUv - px*1.3846153846).rgb * 0.3162162162;',
+        '  s += texture2D(tD, vUv + px*3.2307692308).rgb * 0.0702702703;',
+        '  s += texture2D(tD, vUv - px*3.2307692308).rgb * 0.0702702703;',
+        '  gl_FragColor = vec4(s, 1.0);',
+        '}'].join('\n') });
+    compMat = new THREE.ShaderMaterial({ uniforms:{ tBase:{value:null}, tBloom:{value:null}, uStr:{value:0.60} },
+      vertexShader: VS, fragmentShader: [
+        'uniform sampler2D tBase; uniform sampler2D tBloom; uniform float uStr; varying vec2 vUv;',
+        'void main(){',
+        '  gl_FragColor = vec4(texture2D(tBase, vUv).rgb + texture2D(tBloom, vUv).rgb * uStr, 1.0);',
+        '}'].join('\n') });
+  })();
+  var bloomOK = true;
+  function makeTargets(w, h){
+    try{
+      var p = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat };
+      if(rtScene) rtScene.dispose(); if(rtA) rtA.dispose(); if(rtB) rtB.dispose();
+      rtScene = new THREE.WebGLRenderTarget(w, h, p);
+      var hw = Math.max(1, Math.floor(w/2)), hh = Math.max(1, Math.floor(h/2));
+      rtA = new THREE.WebGLRenderTarget(hw, hh, p);
+      rtB = new THREE.WebGLRenderTarget(hw, hh, p);
+    }catch(e){ bloomOK = false; }
+  }
+  function renderFrame(){
+    if(!bloomOK || !rtScene || reduced){ renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
+    renderer.setRenderTarget(rtScene); renderer.render(scene, camera);
+    quadMesh.material = briMat; briMat.uniforms.tD.value = rtScene.texture;
+    renderer.setRenderTarget(rtA); renderer.render(quadScene, quadCam);
+    quadMesh.material = blurMat; blurMat.uniforms.uRes.value.set(rtA.width, rtA.height);
+    blurMat.uniforms.tD.value = rtA.texture; blurMat.uniforms.uDir.value.set(1, 0);
+    renderer.setRenderTarget(rtB); renderer.render(quadScene, quadCam);
+    blurMat.uniforms.tD.value = rtB.texture; blurMat.uniforms.uDir.value.set(0, 1);
+    renderer.setRenderTarget(rtA); renderer.render(quadScene, quadCam);
+    quadMesh.material = compMat;
+    compMat.uniforms.tBase.value = rtScene.texture; compMat.uniforms.tBloom.value = rtA.texture;
+    renderer.setRenderTarget(null); renderer.render(quadScene, quadCam);
+  }
+
   function layout(){
     var w = gate.clientWidth, h = gate.clientHeight;
     renderer.setSize(w, h);
+    var pr = renderer.getPixelRatio();
+    makeTargets(Math.max(1, Math.floor(w * pr)), Math.max(1, Math.floor(h * pr)));
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     camera.position.z = w < 700 ? 3.1 : 2.55;
@@ -346,13 +509,14 @@
   function frame(){
     if(!running) return;
     requestAnimationFrame(frame);
+    var dt = Math.min(clock.getDelta(), 0.05);   // seconds, capped for tab switches
     var t = clock.getElapsedTime();
 
     if(entering){
       var p = Math.min((t - tEnter) / EXPLODE, 1);
       var pe = p * p; // accelerating
       // fast spin
-      spin -= 0.0016 + 0.16 * pe;
+      spin -= (0.096 + 9.6 * pe) * dt;
       // explode point clouds outward
       for(var c = 0; c < explosive.length; c++){
         var ex = explosive[c];
@@ -367,7 +531,7 @@
         ex.mat.size = ex.baseSize * (1 + p * 2.2);
         ex.mat.opacity = ex.baseOpacity * (1 - 0.45 * p);
       }
-      grat.material.opacity = 0.46 * (1 - p);
+      grat.material.uniforms.uFade.value = (1 - p);
       glow.scale.setScalar(3.0 + pe * 2.2);
 
       if(!flashOn && p > 0.55){
@@ -393,7 +557,7 @@
         }, 1600);
       }
     } else if(!reduced){
-      spin -= 0.0016;
+      spin -= 0.096 * dt;   // 0.0016/frame at 60fps, now frame-rate independent
     }
 
     if(!reduced || entering){
@@ -434,7 +598,15 @@
       A.comet.material.opacity = Math.sin(Math.PI * u) * 0.85 * czv * (1 - pNow);
     }
 
-    renderer.render(scene, camera);
+    for(var sl = 0; sl < starLayers.length; sl++) starLayers[sl].mat.uniforms.uTime.value = t;
+    // parallax: the far field drifts slower than the near one
+    if(starLayers.length === 2){
+      starLayers[0].obj.rotation.y = Math.sin(t * 0.035) * 0.05;
+      starLayers[1].obj.rotation.y = Math.sin(t * 0.035) * 0.12;
+      starLayers[0].obj.rotation.x = Math.cos(t * 0.028) * 0.02;
+      starLayers[1].obj.rotation.x = Math.cos(t * 0.028) * 0.05;
+    }
+    renderFrame();
   }
   frame();
 

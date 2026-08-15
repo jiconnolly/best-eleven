@@ -174,3 +174,84 @@
     });
   }
 })();
+
+/* ============ SEMILLERO — hover / tap video ============ */
+/* Nothing preloads and nothing plays until the visitor asks for it: hover on a
+   pointer device, tap on touch. Playback ping-pongs (forward, then reverse) so
+   the loop never jumps, since the clips do not end where they begin. */
+(function(){
+  var steps = document.querySelectorAll('.sem-step[data-sem]');
+  if(!steps.length) return;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced) return;
+  var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  steps.forEach(function(step){
+    var vid = step.querySelector('.sem-video');
+    if(!vid) return;
+
+    if(!canHover){
+      var hint = document.createElement('div');
+      hint.className = 'sem-hint';
+      hint.setAttribute('aria-hidden','true');
+      hint.textContent = '▶';
+      step.appendChild(hint);
+    }
+
+    var loaded = false, back = false, raf = 0;
+
+    function load(){
+      if(loaded) return;
+      loaded = true;
+      // prefer webm when the browser lacks proprietary H.264
+      var webm = vid.getAttribute('data-webm'), mp4 = vid.getAttribute('data-mp4');
+      var canMp4 = !!vid.canPlayType('video/mp4; codecs="avc1.42E01E"');
+      vid.src = canMp4 ? mp4 : webm;
+      vid.addEventListener('error', function once(){
+        vid.removeEventListener('error', once);
+        var alt = (vid.src.indexOf('.mp4') > -1) ? webm : mp4;
+        if(alt){ vid.src = alt; vid.load(); vid.play().catch(function(){}); }
+      });
+      vid.load();
+    }
+    function reverse(){
+      // step backwards by hand: browsers cannot play a video in reverse
+      cancelAnimationFrame(raf);
+      var last = performance.now();
+      (function tick(now){
+        var dt = (now - last) / 1000; last = now;
+        vid.currentTime = Math.max(0, vid.currentTime - dt);
+        if(vid.currentTime <= 0.02){ back = false; vid.play().catch(function(){}); return; }
+        raf = requestAnimationFrame(tick);
+      })(last);
+    }
+    function start(){
+      load();
+      step.classList.add('is-playing');
+      cancelAnimationFrame(raf);
+      if(back){ back = false; }
+      vid.play().catch(function(){});
+    }
+    function stop(){
+      cancelAnimationFrame(raf);
+      back = false;
+      vid.pause();
+      step.classList.remove('is-playing');
+      // let the fade finish before snapping back to the first frame
+      setTimeout(function(){ if(!step.classList.contains('is-playing')) vid.currentTime = 0; }, 520);
+    }
+
+    vid.addEventListener('ended', function(){ back = true; reverse(); });
+
+    if(canHover){
+      step.addEventListener('mouseenter', start);
+      step.addEventListener('mouseleave', stop);
+      step.addEventListener('focusin', start);
+      step.addEventListener('focusout', stop);
+    } else {
+      step.addEventListener('click', function(){
+        if(step.classList.contains('is-playing')) stop(); else start();
+      });
+    }
+  });
+})();

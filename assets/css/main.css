@@ -794,3 +794,49 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
   opacity:0.85;transition:opacity .3s;
 }
 .foot-flags svg:hover{opacity:1;}
+
+/* ============ SEMILLERO — media cards ============ */
+/* Video only ever runs on deliberate intent: hover on pointer devices, tap on
+   touch. Nothing autoplays, nothing preloads until the user asks for it. */
+.semillero{grid-template-columns:repeat(3,1fr);border:none;gap:1.25rem;overflow:visible;}
+.sem-step{
+  padding:0;border-radius:4px;overflow:hidden;position:relative;
+  background:rgba(253,248,238,0.02);border:1px solid var(--line-soft);
+  transition:border-color .45s ease, transform .45s ease;
+}
+.sem-step + .sem-step{border-left:1px solid var(--line-soft);border-top:none;}
+.sem-step::after{display:none;}
+.sem-media{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#080d13;}
+.sem-media::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(6,10,16,0) 38%,rgba(6,10,16,0.55) 68%,rgba(6,10,16,0.94) 100%);
+}
+.sem-poster,.sem-video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+}
+.sem-video{opacity:0;transition:opacity .5s ease;}
+.sem-step.is-playing .sem-video{opacity:1;}
+.sem-step.is-playing{border-color:rgba(201,169,97,0.35);}
+.sem-body{position:relative;margin-top:-5.2rem;padding:0 1.6rem 1.8rem;z-index:2;}
+.sem-body .num{font-family:'Fraunces',serif;font-size:0.9rem;color:var(--gold);letter-spacing:0.1em;}
+.sem-body h3{font-size:1.45rem;margin:0.5rem 0 0.35rem;}
+.sem-body .tag{font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:0.8rem;}
+.sem-body p{font-size:0.88rem;color:var(--ink-m);margin:0;}
+/* touch devices get an affordance, since there is no hover to discover */
+.sem-step .sem-hint{
+  position:absolute;top:0.9rem;right:0.9rem;z-index:3;
+  width:1.9rem;height:1.9rem;border-radius:50%;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(6,10,16,0.55);border:1px solid rgba(201,169,97,0.4);
+  color:var(--gold);font-size:0.6rem;backdrop-filter:blur(4px);
+  transition:opacity .35s ease;
+}
+.sem-step.is-playing .sem-hint{opacity:0;}
+@media (hover:none){ .sem-step .sem-hint{display:flex;} }
+@media (max-width:900px){
+  .semillero{grid-template-columns:1fr;gap:1rem;}
+  .sem-step + .sem-step{border-left:1px solid var(--line-soft);}
+  .sem-media{aspect-ratio:3/2;}
+  .sem-body{margin-top:-4.4rem;}
+}
+@media (prefers-reduced-motion:reduce){ .sem-video{display:none;} }
