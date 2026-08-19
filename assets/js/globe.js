@@ -111,12 +111,13 @@
 
   // --- club city nodes ---
   var cities = [
-    {name:'Buenos Aires', lon:-58.4, lat:-34.6},
-    {name:'Asunción',     lon:-57.6, lat:-25.3},
-    {name:'Montevideo',   lon:-56.2, lat:-34.9},
+    {name:'Buenos Aires', lon:-58.4, lat:-34.6, crest:'assets/img/crest-colegiales.png', off:[-0.055,-0.030]},
+    {name:'Asunción',     lon:-57.6, lat:-25.3, crest:'assets/img/crest-rubio.png',      off:[ 0.052, 0.030]},
+    {name:'Montevideo',   lon:-56.2, lat:-34.9, crest:'assets/img/crest-lito.png',       off:[ 0.058,-0.048]},
     {name:'Miami',        lon:-80.2, lat: 25.8}
   ];
-  var rings = [];
+  var rings = [], crests = [];
+  var texLoader = new THREE.TextureLoader();
   cities.forEach(function(c, idx){
     var v = ll2v(c.lon, c.lat, R + 0.012);
     var core = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -135,6 +136,41 @@
     ring.userData.phase = idx * 0.9;
     world.add(ring);
     rings.push(ring);
+
+    // club crest, lifted clear of the surface so it never clips into the globe
+    if(c.crest){
+      var dir = v.clone().normalize();
+      // nudge each badge off its own pin: Buenos Aires and Montevideo sit ~200km
+      // apart and would otherwise overlap almost completely at this scale
+      var up = new THREE.Vector3(0,1,0);
+      var east = new THREE.Vector3().crossVectors(up, dir).normalize();
+      var north = new THREE.Vector3().crossVectors(dir, east).normalize();
+      var o = c.off || [0,0];
+      var at = dir.clone().multiplyScalar(R + 0.05)
+                 .add(east.clone().multiplyScalar(o[0]))
+                 .add(north.clone().multiplyScalar(o[1]));
+
+      var tex = texLoader.load(c.crest);
+      tex.minFilter = THREE.LinearFilter;
+      var badge = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: tex, transparent: true, opacity: 0, depthWrite: false, depthTest: false
+      }));
+      badge.position.copy(at);
+      badge.scale.setScalar(0.078);
+      badge.renderOrder = 10;
+      world.add(badge);
+
+      // hairline tying the badge back to its pin
+      var leadMat = new THREE.LineBasicMaterial({color:0xC9A961, transparent:true, opacity:0, depthWrite:false, depthTest:false});
+      var lead = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([dir.clone().multiplyScalar(R + 0.014), at.clone()]),
+        leadMat
+      );
+      lead.renderOrder = 9;
+      world.add(lead);
+
+      crests.push({sprite: badge, lead: leadMat, dir: dir});
+    }
   });
 
   // --- export arcs (to Europe + Miami) ---
@@ -217,8 +253,23 @@
       arcMats.forEach(function(m, i){
         m.opacity = 0.28 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.7 + i * 1.4));
       });
+      // crests only exist while their node faces the camera
+      crests.forEach(function(c){
+        var wp = c.dir.clone().applyQuaternion(world.quaternion);
+        var vis = Math.max(0, Math.min(1, (wp.z - 0.08) / 0.42));
+        c.sprite.material.opacity = vis;
+        c.lead.opacity = vis * 0.5;
+      });
     }
     renderer.render(scene, camera);
+  }
+  if(reduced){
+    crests.forEach(function(c){
+      var wp = c.dir.clone().applyQuaternion(world.quaternion);
+      var vis = Math.max(0, Math.min(1, (wp.z - 0.08) / 0.42));
+      c.sprite.material.opacity = vis;
+      c.lead.opacity = vis * 0.5;
+    });
   }
   frame();
 
