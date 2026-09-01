@@ -114,9 +114,12 @@
     {name:'Buenos Aires', lon:-58.4, lat:-34.6, crest:'assets/img/crest-colegiales.png', off:[-0.055,-0.030]},
     {name:'Asunción',     lon:-57.6, lat:-25.3, crest:'assets/img/crest-rubio.png',      off:[ 0.052, 0.030]},
     {name:'Montevideo',   lon:-56.2, lat:-34.9, crest:'assets/img/crest-lito.png',       off:[ 0.058,-0.048]},
-    {name:'Miami',        lon:-80.2, lat: 25.8}
+    {name:'Miami',        lon:-80.2, lat: 25.8, crest:'assets/img/crest-miami.png',      off:[-0.010,-0.310]}
   ];
   var rings = [], crests = [];
+  // on narrow screens the globe sits behind the hero copy: badges would land on
+  // top of the headline and be too small to read anyway
+  var showCrests = window.matchMedia('(min-width: 1024px)').matches;
   var texLoader = new THREE.TextureLoader();
   cities.forEach(function(c, idx){
     var v = ll2v(c.lon, c.lat, R + 0.012);
@@ -138,7 +141,7 @@
     rings.push(ring);
 
     // club crest, lifted clear of the surface so it never clips into the globe
-    if(c.crest){
+    if(c.crest && showCrests){
       var dir = v.clone().normalize();
       // nudge each badge off its own pin: Buenos Aires and Montevideo sit ~200km
       // apart and would otherwise overlap almost completely at this scale
