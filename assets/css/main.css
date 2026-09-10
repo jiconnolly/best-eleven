@@ -914,40 +914,6 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 }
 @media (prefers-reduced-motion:reduce){ .squad-band img{transition:none;} }
 
-/* ============ CLUB SHOTS — squad photography ============ */
-/* Sits beside the copy as texture, not as a headline asset: desaturated,
-   dimmed, and only resolving on hover so it never pulls focus from the numbers. */
-.club-shots{
-  display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;
-  margin-top:1.1rem;
-}
-.club-shots figure{
-  margin:0; overflow:hidden; border-radius:4px; line-height:0;
-  border:1px solid rgba(255,255,255,0.06);
-}
-/* second column drops a little, so the block reads as a mosaic not a table */
-.club-shots figure:nth-child(2),
-.club-shots figure:nth-child(4){ transform:translateY(1.1rem); }
-.club-shots img{
-  width:100%; height:100%; object-fit:cover; display:block;
-  filter:grayscale(0.28) brightness(0.72) contrast(1.04);
-  transform:scale(1.01);
-  transition:filter .55s var(--ease), transform .55s var(--ease);
-}
-.club-shots:hover img{ filter:grayscale(0) brightness(0.92) contrast(1); }
-.club-shots figure:hover img{ filter:grayscale(0) brightness(1) contrast(1); transform:scale(1.045); }
-.club-shots .cap{
-  grid-column:1 / -1; margin-top:1.6rem;
-  font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase;
-  color:rgba(255,255,255,0.32);
-}
-@media (max-width:900px){
-  .club-shots figure:nth-child(2),
-  .club-shots figure:nth-child(4){ transform:none; }
-  .club-shots .cap{ margin-top:0.9rem; }
-}
-@media (prefers-reduced-motion:reduce){ .club-shots img{transition:none;} }
-
 /* ============ ACTION TRIPTYCH ============ */
 /* Three verticals in a row, same restrained treatment as the squad band:
    masked edges, held back in saturation, lifting only on hover. */
@@ -971,9 +937,14 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
   margin-top:0.5rem; font-size:0.56rem; letter-spacing:0.2em;
   text-transform:uppercase; color:rgba(255,255,255,0.3);
 }
+
+/* four-up variant of the same strip, for clubs with four frames */
+.action-trio.action-four{ grid-template-columns:repeat(4,1fr); }
+
 @media (max-width:700px){
   .action-trio{grid-template-columns:1fr 1fr; gap:0.6rem;}
-  .action-trio figure:nth-child(3){display:none;}   /* two read better than three squeezed */
+  .action-trio:not(.action-four) figure:nth-child(3){display:none;}
+  .action-trio.action-four{grid-template-columns:1fr 1fr;}   /* two read better than three squeezed */
 }
 @media (prefers-reduced-motion:reduce){
   .action-trio img{transition:none;transform:none;}
