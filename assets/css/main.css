@@ -947,3 +947,34 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
   .club-shots .cap{ margin-top:0.9rem; }
 }
 @media (prefers-reduced-motion:reduce){ .club-shots img{transition:none;} }
+
+/* ============ ACTION TRIPTYCH ============ */
+/* Three verticals in a row, same restrained treatment as the squad band:
+   masked edges, held back in saturation, lifting only on hover. */
+.action-trio{
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:clamp(0.6rem,1.6vw,1.2rem); margin-top:2.4rem;
+}
+.action-trio figure{position:relative; aspect-ratio:3/4; overflow:hidden; border-radius:4px;}
+.action-trio img{
+  width:100%; height:100%; object-fit:cover; display:block;
+  filter:saturate(0.68) contrast(1.02) brightness(0.72);
+  transform:scale(1.03);
+  transition:filter .8s var(--ease), transform 1.1s var(--ease);
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 14%, #000 82%, transparent 100%);
+  mask-image:linear-gradient(to bottom, transparent 0%, #000 14%, #000 82%, transparent 100%);
+}
+.action-trio figure:hover img{
+  filter:saturate(0.95) contrast(1.02) brightness(0.92); transform:scale(1);
+}
+.action-trio .cap{
+  margin-top:0.5rem; font-size:0.56rem; letter-spacing:0.2em;
+  text-transform:uppercase; color:rgba(255,255,255,0.3);
+}
+@media (max-width:700px){
+  .action-trio{grid-template-columns:1fr 1fr; gap:0.6rem;}
+  .action-trio figure:nth-child(3){display:none;}   /* two read better than three squeezed */
+}
+@media (prefers-reduced-motion:reduce){
+  .action-trio img{transition:none;transform:none;}
+}
