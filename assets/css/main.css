@@ -949,3 +949,53 @@ html.reduced .re-hero-icon{animation:none;opacity:1;}
 @media (prefers-reduced-motion:reduce){
   .action-trio img{transition:none;transform:none;}
 }
+
+/* ============ BEFORE / AFTER SWIPE ============ */
+/* Lives inside the existing .plate frame, so both layers are cover-cropped to
+   the same box and the wipe never changes the page layout. */
+.ba{
+  position:absolute; inset:0; overflow:hidden;
+  cursor:ew-resize; touch-action:pan-y; user-select:none; -webkit-user-select:none;
+  background:#0a0f16;
+}
+.ba > img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  display:block; pointer-events:none; -webkit-user-drag:none;
+}
+.ba .ba-after{
+  position:absolute; top:0; left:0; bottom:0; overflow:hidden;
+  width:var(--pos,50%);
+  border-right:1px solid rgba(201,169,97,0.55);
+}
+.ba .ba-after img{
+  position:absolute; top:0; left:0; height:100%; max-width:none;
+  object-fit:cover; pointer-events:none; -webkit-user-drag:none;
+}
+.ba-handle{
+  position:absolute; top:0; bottom:0; left:var(--pos,50%);
+  width:2.6rem; transform:translateX(-50%); z-index:3;
+  display:flex; align-items:center; justify-content:center; pointer-events:none;
+}
+.ba-grip{
+  width:2.2rem; height:2.2rem; border-radius:50%;
+  background:rgba(8,12,18,0.72); border:1px solid rgba(201,169,97,0.6);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--gold); font-size:0.72rem;
+  box-shadow:0 6px 20px -8px rgba(0,0,0,0.9);
+  transition:transform .25s var(--ease), border-color .25s ease;
+}
+.ba:hover .ba-grip{transform:scale(1.08); border-color:rgba(201,169,97,0.9);}
+.ba-tag{
+  position:absolute; top:0.7rem; z-index:2;
+  font-size:0.55rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:rgba(255,255,255,0.7); padding:0.26rem 0.58rem;
+  background:rgba(8,12,18,0.6); border-radius:2px; backdrop-filter:blur(4px);
+  pointer-events:none; transition:opacity .3s ease;
+}
+.ba-tag.l{left:0.7rem;} .ba-tag.r{right:0.7rem;}
+.ba:focus-visible{outline:2px solid var(--gold); outline-offset:-2px;}
+@media (max-width:560px){
+  .ba-tag{font-size:0.5rem;letter-spacing:0.12em;}
+  .ba-grip{width:1.9rem;height:1.9rem;}
+}

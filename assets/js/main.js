@@ -255,3 +255,58 @@
     }
   });
 })();
+
+/* ============ BEFORE / AFTER SWIPE ============ */
+/* Drag, click or arrow-key the divider to wipe between the stadium as it is
+   today and the render of what it becomes. The "after" layer is clipped by
+   width, so its image is sized to the container height and never reflows. */
+(function(){
+  var nodes = document.querySelectorAll('[data-ba]');
+  if(!nodes.length) return;
+
+  nodes.forEach(function(ba){
+    var after = ba.querySelector('.ba-after');
+    var afterImg = after && after.querySelector('img');
+    var tagL = ba.querySelector('.ba-tag.l');
+    var tagR = ba.querySelector('.ba-tag.r');
+    if(!after || !afterImg) return;
+
+    var pos = 50, dragging = false;
+
+    function sizeAfter(){
+      // the clipped layer shrinks, so its image must stay the full container width
+      afterImg.style.width = ba.clientWidth + 'px';
+      afterImg.style.height = ba.clientHeight + 'px';
+    }
+    function set(p){
+      pos = Math.max(0, Math.min(100, p));
+      ba.style.setProperty('--pos', pos + '%');
+      ba.setAttribute('aria-valuenow', Math.round(pos));
+      if(tagL) tagL.style.opacity = pos < 16 ? 0 : 1;
+      if(tagR) tagR.style.opacity = pos > 84 ? 0 : 1;
+    }
+    function fromEvent(e){
+      var r = ba.getBoundingClientRect();
+      var x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      set(x / r.width * 100);
+    }
+
+    ba.addEventListener('pointerdown', function(e){
+      dragging = true; ba.setPointerCapture(e.pointerId); fromEvent(e);
+    });
+    ba.addEventListener('pointermove', function(e){ if(dragging) fromEvent(e); });
+    ba.addEventListener('pointerup',   function(e){ dragging = false; try{ ba.releasePointerCapture(e.pointerId); }catch(err){} });
+    ba.addEventListener('pointercancel', function(){ dragging = false; });
+
+    ba.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowLeft'){ set(pos - 4); e.preventDefault(); }
+      if(e.key === 'ArrowRight'){ set(pos + 4); e.preventDefault(); }
+      if(e.key === 'Home'){ set(0); e.preventDefault(); }
+      if(e.key === 'End'){ set(100); e.preventDefault(); }
+    });
+
+    window.addEventListener('resize', sizeAfter);
+    if(afterImg.complete) sizeAfter(); else afterImg.addEventListener('load', sizeAfter);
+    sizeAfter(); set(50);
+  });
+})();
